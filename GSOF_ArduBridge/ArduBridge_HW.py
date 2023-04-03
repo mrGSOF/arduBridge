@@ -61,9 +61,16 @@ class ArduBridge_Shield():
         self.pwmCh = [3,5,6,9,10,11]    #< pwm-ch pin assignment
         self.servoCh = self.pwmCh       #< servo connectors on board are same as pwm connectors
 
-    def getDmfChipCurrect(self, ch=3):
+    def getDmfChipCurrect(self, ch=3, units='b'):
         vBin = self.ardu.an.analogRead(ch)
-        return vBin
+        if units == 'b':
+            return vBin
+        elif units == 'A':
+            Rsens = 10000 #< Ohm
+            return vBin*self.lsb/Rsens
+        else:
+            print("Invalid units %s"%units)
+            return -1.0
 
     def servoMode(self, ch, on):
         ofs = 0
