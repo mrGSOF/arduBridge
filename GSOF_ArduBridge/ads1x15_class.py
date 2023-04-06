@@ -1,36 +1,32 @@
-
 """
-a class definition for an ADS1x15 object, which is a type of analog to digital converter (ADC). The class has a number of methods and properties that allow you to configure and use the ADC to convert analog signals to digital form.
+    This file is part of GSOF_ArduBridge.
 
-Here is a brief description of each of the methods and properties in the class:
+    GSOF_ArduBridge is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-__init__: This is the constructor method for the class, which is called when you create a new instance of the class. It initializes the object with the specified settings for the ADC, such as the device address, gain, data rate, and mode.
+    GSOF_ArduBridge is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-getDataRate: This method returns the current data rate for ADC conversions, in samples per second.
+    You should have received a copy of the GNU General Public License
+    along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
-setDataRate: This method sets the data rate for ADC conversions. The possible rates are defined by the rates property, which is implemented by subclasses of the ADS1x15 class.
-
-getRates: This method returns a list of possible data rate settings for the ADC. It is implemented by subclasses of the ADS1x15 class.
-
-rate_config: This method returns a dictionary of rate configuration masks for the ADC. It is implemented by subclasses of the ADS1x15 class.
-
-getGain: This method returns the current gain setting for the ADC.
-
-setGain: This method sets the gain for the ADC. The possible gain settings are defined by the getGains method.
-
-getGains: This method returns a list of possible gain settings for the ADC.
-
-getMode: This method returns the current mode for the ADC, either continuous or single.
-
-setMode: This method sets the mode for the ADC.
-
-_conversion_value: This method takes the raw 16-bit ADC values of a conversion result and returns a signed integer value. It is implemented by subclasses of the ADS1x15 class.
-
-_read: This method performs an ADC read and returns the signed integer result. It handles the configuration of the ADC and the reading of the conversion result.
-
-_write_register: This method writes a value to a specified register on the ADC.
+Class definition for an ADS1x15 analog to digital converter (ADC). The class has a number of methods and
+ properties that allow you to configure and use the ADC to convert analog signals to digital form.
+ The class is designed as base class to construct specific subclasses.
 """
 
+__version__ = "1.0.0"
+__author__ = "Guy Soffer"
+__copyright__ = "Copyright 2019"
+__credits__ = [""]
+__license__ = "GPL-3.0-or-later"
+__maintainer__ = ""
+__email__ = "gsoffer@yahoo.com"
+__status__ = "Production"
 
 import time
 
@@ -77,6 +73,7 @@ class ADS1x15():
         return self._data_rate
 
     def setDataRate(self, rate: int):
+        """Sets the data rate for ADC conversions. The possible rates are defined by the rates property, which is implemented by subclasses of the ADS1x15 class."""
         possible_rates = self.rates
         if rate not in possible_rates:
             raise ValueError("Data rate must be one of: {}".format(possible_rates))
@@ -95,6 +92,7 @@ class ADS1x15():
         return self._gain
 
     def setGain(self, gain):
+        """Sets the gain for the ADC. The possible gain settings are defined by the getGains method."""
         possibleGains = self.getGains()
         if gain not in possibleGains:
             raise ValueError("Gain must be one of: {}".format(possibleGains))
@@ -110,6 +108,7 @@ class ADS1x15():
         return self._mode
 
     def setMode(self, mode):
+        """Sets the mode for the ADC."""
         if mode not in (self.MODE_CONTINUOUS, self.MODE_SINGLE):
             raise ValueError("Unsupported mode")
         self._mode = mode

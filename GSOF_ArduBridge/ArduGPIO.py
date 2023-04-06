@@ -16,9 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
-Class to access the Arduino-Bridge digital inputs and outputs.
-This class is using the BridgeSerial class object to communicate over serial
-with the GSOF-Arduino-Bridge firmware.
+The class provides methods for interacting with the digital inputs and outputs of an Arduino via a serial connection.
+It uses the BridgeSerial object to communicate over serial with the GSOF_ArduinoBridge firmware.
 The packet has a binary byte based structure
 byte0 - 'D' to set pin direction, 'I' to read pin state, 'O' to set pin state
         'S' to set the servo control value (firmwares above 1.5)
@@ -26,23 +25,7 @@ byte1 - pin number (binary-value)
 byte2 - pin-value (binary-value) only for digital-out command
 """
 
-"""
-This code defines a class called ArduBridgeGPIO that can be used to access the digital inputs and outputs of an Arduino board running the GSOF-Ardubridge firmware. The ArduBridgeGPIO class has several methods for interacting with the Arduino's digital pins, including setMode, pinMode, digitalWrite, servoWrite, and digitalRead.
-
-The __init__ method is called when a new ArduBridgeGPIO object is created and saves a reference to the BridgeSerial object used to communicate with the Arduino as self.comm. It also defines a dictionary called RES that maps reply codes to strings, and another dictionary called DIR that maps pin modes to strings.
-
-The setMode and pinMode methods are used to set the mode of a digital pin on the Arduino. The pin argument specifies the pin number, and the mode argument specifies the mode (either OUTPUT, INPUT, or SERVO). The init argument is optional and is only used when mode is OUTPUT. If init is 1, the pin is set to high, otherwise it is set to low.
-
-The digitalWrite method is used to set the value of a digital output pin on the Arduino. The pin argument specifies the pin number, and the val argument specifies the value to set (either 0 or 1).
-
-The servoWrite method is used to set the angle of a servo motor attached to a digital pin on the Arduino. The pin argument specifies the pin number, and the val argument specifies the angle to set (an integer from 0 to 180).
-
-The digitalRead method is used to read the value of a digital input pin on the Arduino. The pin argument specifies the pin number, and the method returns the value of the pin (either 0 or 1).
-
-"""
-
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2021"
 __credits__ = []
@@ -66,9 +49,11 @@ class ArduBridgeGPIO():
         self.DIR = {1:'IN', 0:'OUT', 2:'SERVO'}
 
     def setMode(self, pin, mode, init=0):
+        """Set the mode of a digital pin on the Arduino (INPUT, OUTPUT, SERVO)"""
         pinMode(pin, mode, init=0)
 
     def pinMode(self, pin, mode, init=0):
+        """Set the mode of a digital pin on the Arduino (INPUT, OUTPUT, SERVO)"""
         if (mode > 2):
             mode = 1
         if (pin < 112):
@@ -81,6 +66,7 @@ class ArduBridgeGPIO():
         return reply[0]
 
     def digitalWrite(self, pin, val):
+        """Set the Arduino's pin state (either 0 or 1)"""
         val = int(val)
         if (val != 0):
             val = 1
@@ -91,7 +77,21 @@ class ArduBridgeGPIO():
         CON_prn.printf('DOUT%d: %d - %s', par=(pin, val, self.RES[reply[0]]), v=self.v)
         return reply[0]
 
+    def digitalRead(self, pin):
+        """Returns the Arduino's pin state (either 0 or 1)"""
+        if (pin < 0x1b):
+            vDat = [ord('I'), pin]
+            self.comm.send(vDat)
+        reply = self.comm.receive(1)
+        if reply[0]:
+            val = reply[1][0]
+            CON_prn.printf('DIN%d: %d', par=(pin, val), v=self.v)
+            return val
+        CON_prn.printf('DIN%d: Error', par=(pin), v=self.v)
+        return -1
+
     def servoWrite(self, pin, val):
+        """Set the angle of a servo motor attached to a digital pin (an integer from 0 to 180)"""
         val = int(val)
         pin = int(pin)
         vDat = [ord('S'), pin, val]
@@ -101,7 +101,7 @@ class ArduBridgeGPIO():
         return reply[0]
 
     def servoScurve(self, pin, P0, P1, acc=200, DT=0.05):
-        """ Smooth transition from P0 to P1 at acceleration """
+        """Smooth transition from P0 to P1 at acceleration"""
         acc = abs(acc)
         DP = abs(P1-P0)
         T = 2*math.sqrt(4*DP/acc)
@@ -127,22 +127,8 @@ class ArduBridgeGPIO():
             time.sleep(DT)
 
     def pinPulse(self, pin, onTime):
-        """
-        Pulse the the specific pin# on the arduino GPO
-        """
+        """Pulse the the specific pin# on the arduino GPO"""
         self.digitalWrite(pin, 1)
         time.sleep(onTime)
         self.digitalWrite(pin, 0)
         return 1
-
-    def digitalRead(self, pin):
-        if (pin < 0x1b):
-            vDat = [ord('I'), pin]
-            self.comm.send(vDat)
-        reply = self.comm.receive(1)
-        if reply[0]:
-            val = reply[1][0]
-            CON_prn.printf('DIN%d: %d', par=(pin, val), v=self.v)
-            return val
-        CON_prn.printf('DIN%d: Error', par=(pin), v=self.v)
-        return -1

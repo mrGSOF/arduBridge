@@ -15,21 +15,16 @@
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
-Generate the main object to communicate with an arduino the runs the GSOF-Ardubridge firmware.
-"""
+Class to communicate with an Arduino board running the GSOF-Ardubridge firmware.
+The class creats an instance of BridgeSerial.ArduBridgeComm and saves it as self.comm.
+It also creates instances of several other classes: ArduGPIO.ArduBridgeGPIO, ArduAnalog.ArduBridgeAn,
+ArduI2C.ArduBridgeI2C, ArduSPI.ArduBridgeSPI, and CAP.ArduBridgePnS. These classes provide methods for
+interacting with the Arduino's analog inputs, digital inputs and outputs, I2C bus, SPI bus, and pulse and
+sample functionality, respectively.
 
-"""
-This code defines a class called ArduBridge that can be used to communicate with an Arduino board running the GSOF-Ardubridge firmware. The ArduBridge class has several methods for interacting with the Arduino, including OpenClosePort, Reset, and GetID.
-
-The __init__ method is called when a new ArduBridge object is created and sets up the communication with the Arduino by creating an instance of BridgeSerial.ArduBridgeComm and saving it as self.comm. It also creates instances of several other classes: ArduGPIO.ArduBridgeGPIO, ArduAnalog.ArduBridgeAn, ArduI2C.ArduBridgeI2C, ArduSPI.ArduBridgeSPI, and CAP.ArduBridgePnS. These classes provide methods for interacting with the Arduino's analog inputs, digital inputs and outputs, I2C bus, SPI bus, and pulse and sample functionality, respectively.
-
-The OpenClosePort method can be used to open or close the serial port connection to the Arduino. If the val argument is the string 'open', the serial port is opened. If val is any other string or the integer 0, the serial port is closed. The method returns the number of retries remaining if the serial port fails to open.
-
-The Reset method sends a reset command to the Arduino and flushes the serial buffer. The GetID method sends a request for the Arduino's ID and returns the ID string if a reply is received, or False otherwise.
 """
 
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = ["James Perry"]
@@ -64,6 +59,7 @@ class ArduBridge():
         self.cap  = CAP.ArduBridgePnS( bridge=self.comm )#, v=True )
 
     def OpenClosePort(self, val):
+        """Open (1) or close (0) the serial port connection to the Arduino"""
         if type(val) == str:
             if val == 'open':
                 val = 1
@@ -77,11 +73,13 @@ class ArduBridge():
         return retry
 
     def Reset(self):
+        """Sends a reset command to the Arduino and flushes the serial buffer"""
         self.comm.sendReset()
         self.comm.uart_flush()
         self.GetID()
 
     def GetID(self):
+        """Sends a request for ID and returns the the reply if received, or False otherwise"""
         self.comm.send([ord('?')])
         reply = self.comm.receive(1)
         if reply[0] != -1:

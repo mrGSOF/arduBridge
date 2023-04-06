@@ -16,26 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
-Class to access the Arduino-Bridge Analog inputs and outputs.
-This class is using the BridgeSerial class object to communicate over serial
-with the GSOF_ArduinoBridge firmware.
+The class provides methods for interacting with the analog inputs and outputs of an Arduino via a serial connection.
+It uses the BridgeSerial object to communicate over serial with the GSOF_ArduinoBridge firmware.
+
 The packet has a binary byte based structure
 byte0 - 'P' for PWM-Out, 'A' for Analog-In
 byte1 - pin bumber (binary-value)
 byte2 - pwm-value (binary-value) only for analog-out command
 """
 
-
-"""
-This code defines a class called ArduBridgeAn that provides methods for interacting with the analog inputs and outputs of an Arduino board via a serial connection. The class is designed to work with the GSOF_ArduinoBridge firmware, which is responsible for managing the communication between the host computer and the Arduino board.
-
-The ArduBridgeAn class has two methods: analogWrite and analogRead. The analogWrite method sends a command to the Arduino board to set the value of a specified PWM (pulse width modulation) output pin. The analogRead method sends a command to the Arduino board to read the value of a specified analog input pin and returns the result. Both methods use the BridgeSerial class to send and receive data over the serial connection.
-
-The ArduBridgeAn class also has a number of other properties and methods, including a constructor method __init__ that initializes the object with a BridgeSerial object and an optional verbosity flag. The __init__ method also sets up a comm property that is used to store a reference to the BridgeSerial object.
-"""
-
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]
