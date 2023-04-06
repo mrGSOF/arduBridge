@@ -16,7 +16,7 @@
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
 Class to access the Arduino-Bridge I2C bus.
-This class is using the BridgeSerial class object to communicate over serial
+This class is using the BridgeSerial object to communicate over serial
 with the GSOF-Arduino-Bridge firmware.
 The packet has a binary byte based structure
 
@@ -44,16 +44,7 @@ note:'2' I2C packet header
      'L' data lenght
 """
 
-"""
-This code defines a class ArduBridgeI2C for interacting with an I2C bus via the GSOF_ArduBridge firmware. The __init__ method initializes the class with an optional bridge object (defaults to False) and verbosity flag v (defaults to False).
-
-The class has several constants for the I2C packet structure and error codes. The writeRegister and readRegister methods send commands to the GSOF_ArduBridge firmware to write to or read from a given device and register on the I2C bus.
-
-The set_freq method sets the I2C bus frequency.
-"""
-
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]
@@ -97,6 +88,7 @@ class ArduBridgeI2C():
                       self.ERROR_SENDDATA:'SEND-DATA'}
 
     def setFreq(self, freq):
+        """Set_freq method sets the I2C bus frequency"""
         freq = int(freq/10000)&0xff
         vDat = [self.I2C_PACKET_ID,   #I2C packet-ID
                 self.CMD_I2C_FREQ,    #next byte is the I2C closk frequency
@@ -107,6 +99,7 @@ class ArduBridgeI2C():
 
         
     def writeRaw(self, dev, vByte):
+        """Send list of bytes (vByte) to device (dev 7bit)"""
         vDat = [self.I2C_PACKET_ID,   #I2C packet-ID
                 self.CMD_I2C_ADDRESS, #next byte is the I2C device-address
                 dev,                  #DEV#
@@ -125,6 +118,7 @@ class ArduBridgeI2C():
         return reply
 
     def readRaw(self, dev, N):
+        """Read N bytes from device (dev 7bit) and returns a list of bytes"""
         vHdr = [self.I2C_PACKET_ID,         #I2C packet-ID
                 self.CMD_I2C_ADDRESS,       #next byte is the I2C device-address
                 dev,                        #DEV#
@@ -145,6 +139,7 @@ class ArduBridgeI2C():
         return -1
 
     def writeRegister(self, dev, reg, vByte):
+        """Write bytes (vByte) to register (reg) on device (dev 7bit)"""
         vDat = [self.I2C_PACKET_ID,   #I2C packet-ID
                 self.CMD_I2C_ADDRESS, #next byte is the I2C device-address
                 dev,                  #DEV#
@@ -163,6 +158,7 @@ class ArduBridgeI2C():
         return reply
 
     def readRegister(self, dev, reg, N, delay=0.0):
+        """Read N bytes from register (reg) on device (dev 7bit) and returns a list of bytes"""
         vHdr = [self.I2C_PACKET_ID,         #I2C packet-ID
                 self.CMD_I2C_ADDRESS,       #next byte is the I2C device-address
                 dev,                        #DEV#

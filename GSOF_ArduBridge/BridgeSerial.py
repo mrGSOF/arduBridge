@@ -15,25 +15,25 @@
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
-Class of a basic serial communication methods.
-The class object is build using the supplied serial device name and baud-rate as an input arguments.
-The class methodes, send and receive, are thread protected using internal semaphores.
+Class for establishing a serial communication link with the GSOF_ArduinoBridge firmware.
+It provides methods for sending and receiving data over the serial link, and for opening and closing the connection.
+The send method sends a list of bytes over the serial link, using an escape code sequence to represent certain special bytes.
+The receive method receives data from the serial link and returns it as a list of bytes.
+The open and close methods allow the user to open and close the serial connection.
+
+The object is constructed using the supplied serial device name and baud-rate as an input arguments.
+The send and receive methodes are thread protected using internal semaphores.
 Special data bytes such as RST(0x1b) and ESC(0x5c) are send using an escape code sequence.
 The escape code sequence is generated as follow:
 Instead of sending the value 0x1b, send the byte sequence 0x5c followed by 0xb1
 Instead of sending the value 0x5c, send the byte sequence 0x5c followed by 0xc5
-All the rest of the values are sent without any manipulations.
+Other values are sent as is and without any modification.
 
 By: Guy Soffer (gsoffer@yahoo.com)
 Date: 10/April/2020
 """
 
-
-"""
-This is a Python class for establishing a serial communication link with a device. It provides methods for sending and receiving data over the serial link, and for opening and closing the connection. The send method sends a list of bytes over the serial link, using an escape code sequence to represent certain special bytes. The receive method receives data from the serial link and returns it as a list of bytes. The open and close methods allow the user to open and close the serial connection.
-"""
 __version__ = "1.1.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]

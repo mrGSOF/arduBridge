@@ -29,7 +29,11 @@ The class stores its state.
 """
 
 """
-This is a Python class for implementing a PID (proportional-integral-derivative) controller. PID controllers are used in control systems to maintain a given setpoint by continuously calculating and adjusting the control input based on the error between the setpoint and the current process value. The class has several features, including the ability to measure the rise time and settle time of each command, an enhanced anti-windup algorithm for the integrator, and configurable limits for the integrator and output.
+This is a Python class for implementing a PID (proportional-integral-derivative) controller.
+PID controllers are used in control systems to maintain a given setpoint by continuously calculating
+and adjusting the control input based on the error between the setpoint and the current process value.
+The class has several features, including the ability to measure the rise time and settle time of each command,
+an enhanced anti-windup algorithm for the integrator, and configurable limits for the integrator and output.
 
 The class has several variables:
 
@@ -52,7 +56,6 @@ The class has one method: NextStep(self, ctrl, feedback, dt), which should be ca
 """
 
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = ["James Perry"]
@@ -106,10 +109,10 @@ class PidAlgorithm():
                 self.sum = self.sumMin
 
 
-        #The equation *** Diff(f(x) = (f(x + h) - f(x - h)) / 2h ***
+        #Second order approximation *** Diff(f(x) = (f(x + h) - f(x - h)) / 2h ***
 #        self.diff = self.D * (self.error[-1] - self.error[-3]) / 2*dt
 
-        #The equation    *** Diff(f(x) = (f(x) - f(x - h)) / h ***
+        #First order approximation *** Diff(f(x) = (f(x) - f(x - h)) / h ***
         self.diff = ((self.error[-1] - self.error[-2])/dt) * self.Kd
         
         self.output = self.delta +self.sum +self.diff

@@ -98,11 +98,11 @@ class ArduBridge_Shield():
         self.ardu.gpio.digitalWrite(self.pwmCh[pwmCh],0) #< Set pwm to 0%
 
     def pwmA(self, p):
-        """ Set the PWM value on H-BRIDGE A """
+        """Set the PWM value on H-BRIDGE A"""
         self._pwm(p, dirPin=2, pwmCh=0)
 
     def pwmB(self, p):
-        """ Set the PWM value on H-BRIDGE B """
+        """Set the PWM value on H-BRIDGE B"""
         self._pwm(p,dirPin=4, pwmCh=1)
 
     def _pwm(self, p, dirPin, pwmCh):
@@ -152,7 +152,7 @@ class ArduBridge_Shield():
         return self.ardu.an.analogRead(3)
 
     def pwm_test(self, ch=range(0,6), val=[5,0], dly=0.2):
-        """ """
+        """Set PWMs on ch to val[0] and val[1] after dly"""
         for pwm in ch:
             c = self.pwmCh[pwm]
             self.ardu.an.analogWrite(c, val[0])
@@ -160,7 +160,7 @@ class ArduBridge_Shield():
             self.ardu.an.analogWrite(c, val[1])
 
     def gpio_test(self, d=0.01):
-        """ """
+        """Turn on and off LEDs on GPO<2..13> """
         pinList = range(2,14)
         for pin in pinList:
             self.ardu.gpio.pinMode(pin, 0)

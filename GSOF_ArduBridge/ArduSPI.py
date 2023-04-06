@@ -16,8 +16,16 @@
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
 Class to access the Arduino-Bridge SPI bus.
-This class is using the BridgeSerial class object to communicate over serial
-with the GSOF-Arduino-Bridge firmware.
+It uses the BridgeSerial class object to communicate over serial with the 
+GSOF-Arduino-Bridge firmware.
+The setMode method is used to set the mode of the SPI communication,
+which determines the clock polarity (CPOL) and clock phase (CPHA) of the
+communication. The write_read method is used to write data to the device and
+receive data from it in a single operation.
+It takes a list of bytes as an argument and sends them to the device,
+then receives and returns the response from the device.
+The setOff method is used to turn off the SPI communication.
+
 The packet has a binary byte based structure
 To write:
 <'3'>,<TXD1>,<TXD2>...<TXDn>, <0x1b>
@@ -27,12 +35,7 @@ e.g, to write the value 0x14, 0x15 and 0x16 use:
 In respond you three bytes will be reveived
 """
 
-"""
-The ArduBridgeSPI class is used to communicate with an Arduino device over the Serial Peripheral Interface (SPI) protocol. It can be used to send data to the device and receive data from it. The setMode method is used to set the mode of the SPI communication, which determines the clock polarity (CPOL) and clock phase (CPHA) of the communication. The write_read method is used to write data to the device and receive data from it in a single operation. It takes a list of bytes as an argument and sends them to the device, then receives and returns the response from the device. The setOff method is used to turn off the SPI communication.
-"""
-
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]
@@ -61,10 +64,12 @@ class ArduBridgeSPI():
             self.SPI_PACKET_ID = ord('3')
             self.SPI_CFG_PACKET_ID = ord('4')
 
-    def setOff(selfv=False):
+    def setOff(self, v=False):
+        """Disable the SPI"""
         self.setMode(self.OFF, v=v)
 
     def setMode(self, mode, v=False):
+        """Set the mode of the SPI bus (MODE0..MODE3)"""
         modeDesc = ("SPI_MODE0:\nClock is normally low (CPOL = 0)\nData is sampled on the transition from low to high (leading edge) (CPHA = 0)",
                     "SPI_MODE1:\nClock is normally low (CPOL = 0)\nData is sampled on the transition from high to low (trailing edge) (CPHA = 1)",
                     "SPI_MODE2:\nClock is normally high (CPOL = 1)\nData is sampled on the transition from high to low (leading edge) (CPHA = 0)",
@@ -84,6 +89,7 @@ class ArduBridgeSPI():
             print("Error setting the SPI mode\n")
         
     def write_read(self, vByte):
+        """Send and receive list of bytes (vByte) on the SPI bus. Returns a list of bytes"""
         vDat = [self.SPI_PACKET_ID]+ vByte #SPI packet-ID +data-vector
         self.comm.send(vDat)
         self.comm.sendReset()         #End the SPI mode
