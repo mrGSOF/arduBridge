@@ -15,23 +15,27 @@
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
-Class to calculate moving average and variance.
+Class to calculate moving average, variance and standard deviation.
 """
 
+
 """
-This class Stat_Recursive_X_Array is used to calculate statistical quantities such as mean and variance of a given set of data points. The class has an attribute CycAry which is an instance of the Cyclic_Array class. The Cyclic_Array class is used to implement a cyclic array data structure that stores a fixed number of elements, and when a new element is added and the array is full, the oldest element is removed to make space for the new element.
+This code is used to calculate and update the moving average and variance of an input data stream.
+The Stat_Recursive_X_Array class maintains a cyclic buffer of fixed size N,
+where N is the number of input data points in the anasamble.
+The update() method is used to add a new data point to the cyclic buffer, replacing the oldest data point,
+and returning the value of the oldest data point that was removed.
+The Ex() method returns the current mean.
+The Var() and Stddev methods returns the current variance and standard-deviation.
+The Ex2() method returns the current average of the squares of the data points.
 
-The Stat_Recursive_X_Array class has the following methods:
-
-__init__(self, X=[0]): This is the constructor method which is used to initialize the object. It takes in a list X of data points and stores it in the CycAry attribute. It also calculates the sum of the elements in X, sum of squares of the elements in X, mean of the elements in X and variance of the elements in X.
-step(self, Xi): This method is used to add a new element Xi to the cyclic array and update the statistical quantities. It returns the oldest element removed from the cyclic array to make space for the new element.
-Ex(self): This method returns the mean of the elements in the cyclic array.
-Ex2(self): This method returns the sum of squares of the elements in the cyclic array.
-Var(self): This method returns the variance of the elements in the cyclic array.
+The Cyclic_Array class is used to maintain the cyclic buffer of data points.
+It has an update() method that is used to add a new data point to the buffer, replacing the oldest data point,
+and returning the value of the oldest data point that was removed.
+The E() function calculates the average of a list of data points. If a second list is provided,
+it calculates the dot product of the two lists and returns the average of the result.
 """
-
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]
@@ -40,7 +44,17 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-import copy, math
+import math
+
+def E(X, Y=None):
+    """Returns the mean of X"""
+    S = 0
+    if Y==None:
+        S = sum(X)
+    else:
+        for Xi,Yi in zip(X,Y):
+            S += Xi*Yi
+    return S/len(X)
 
 class Cyclic_Array():
     def __init__(self, N=1, InitVal=0, InitVec=None):
@@ -52,70 +66,67 @@ class Cyclic_Array():
         self.isFilled = False
         self.N = len(self.V)
 
-    def step(self, new_val):
+    def update(self, new_val) -> float:
+        """Add a new value to the buffer and drop (also return) the oldest one"""
         old_val = self.V[self.idx]
         self.V[self.idx] = new_val
         self.idx += 1
         if self.idx >= self.N:
             self.idx = 0
             self.isFilled = True
-        return old_val
-
-def E(X, Y=None):
-    S = 0
-    if Y==None:
-        S = sum(X)
-    else:
-        for Xi,Yi in zip(X,Y):
-            S += Xi*Yi
-    return S/len(X)
+        return float(old_val)
  
 class Stat_Recursive_X_Array():
     def __init__(self, X=[0]):
-        self.CycAry = Cyclic_Array( InitVec=X)
-        self.lastValue = X
+        self.ensemble = Cyclic_Array( InitVec=X)
 
         #Summing the entire array for the first and only time
         self.Sx = 0
         self.Sx2 = 0
-        for i,Xi in enumerate(X):
+        for Xi in X:
             self.Sx += Xi
             self.Sx2 += Xi*Xi
 
         #Calculating the finale result
-        N = self.CycAry.N
+        N = self.ensemble.N
         self.E_x = self.Sx/N
         self.E_x2 = self.Sx2/N
 
-    def step(self, Xi):
-        #Cycling the array with a new value
-        self.lastValue = Xi
-        Xo = self.CycAry.step(Xi)
-        N = self.CycAry.N
+    def update(self, Xi) -> float:
+        """ Update the moving ensemble. Return the oldest value that was droped """
+        Xo = self.ensemble.update(Xi) #< Update the cyclinc buffer with the new value
 
-        #Updating the new sum of the array
+        ### Update the new sum
         self.Sx -= Xo
         self.Sx += Xi
 
-        if self.CycAry.isFilled:
+        N = self.ensemble.N
+        if self.ensemble.isFilled:
             self.E_x = self.Sx/N
         else:
-            self.E_x = self.lastValue
-                
-        #Updating the new sum of the array
+            self.E_x = Xi
+
+        #Update the statistical values of the ensemble
         self.Sx2 -= Xo*Xo
         self.Sx2 += Xi*Xi
         self.E_x2 = self.Sx2/N
 
         N2 = N*N
         self.Var = (1.0/(N*N-N)) * (N*self.Sx2 -self.Sx**2)
-        return Xo
+        return float(Xo)
 
     def Ex(self):
+        """Returns the simple mean of x (the array)"""
         return self.E_x
 
     def Ex2(self):
+        """Returns the simple mean of x^2 (square every element of the array)"""
         return self.E_x2
 
     def Var(self):
+        """Returns the variance of x the (the array)"""
         return self.Var
+
+    def Stddev(self):
+        """Returns the standard deviation of X (the array)"""
+        return math.sqrt(self.Var)

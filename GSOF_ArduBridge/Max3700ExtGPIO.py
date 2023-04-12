@@ -21,13 +21,23 @@ over with the Arduino-Bridge hardware.
 """
 
 """
-The Max3700ExtGPIO class is used to access an external General Purpose Input/Output (GPIO) device connected to an Arduino microcontroller over the I2C bus. The __init__ method initializes the class with a reference to an I2C object and the device ID of the external GPIO device. It also has some class variables for storing the I2C register addresses for various functions of the device, such as setting the device mode or reading/writing to the device ports.
-
-The class has several methods for interacting with the external GPIO device. The modeSet method can be used to set the operating mode of the device, either "normal" or "shutdown". The modeGet method can be used to read the current operating mode of the device. The bankModeSet and bankModeGet methods can be used to set and get the direction (input or output) of the individual pins on the device. The portWrite and portRead methods can be used to write values to and read values from the device ports, respectively. The pinMode and pinRead methods can be used to set the direction and read the value of an individual pin, respectively.
+The Max3700 is an I2C General Purpose Input/Output (GPIO) device connected.
+The class includes methods to control it over the I2C bus.
+The __init__ method initializes the class with a reference to an I2C object and the
+device ID of the external GPIO device. It also has some class variables for storing the
+I2C register addresses for various functions of the device, such as setting the device
+mode or reading/writing to the device ports.
+The class has several methods for interacting with the external GPIO device.
+The modeSet method can be used to set the operating mode of the device, either "normal" or "shutdown".
+The modeGet method can be used to read the current operating mode of the device.
+The bankModeSet and bankModeGet methods can be used to set and get the direction
+(input or output) of the individual pins on the device. The portWrite and portRead methods
+can be used to write values to and read values from the device ports, respectively.
+The pinMode and pinRead methods can be used to set the direction and read the value
+of an individual pin, respectively.
 """
 
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]
@@ -55,9 +65,8 @@ class Max3700ExtGPIO():
         self.MODE = {0:'Shutdown', 1:'Normal'}
         self.tDet = {0:'Disable', 1:'Enable'}
 
-    def modeSet(self, mode=1, transitionDetection=0):
-        #mode: 0 - Shutdown; 1 - Normal operation
-        #transitionDetection: 0 - Disable; 1 - Enable
+    def modeSet(self, mode=1, transitionDetection=0) -> list:
+        """mode: 0 - Shutdown; 1 - Normal operation. transitionDetection: 0 - Disable; 1 - Enable"""
         if mode != 0:
             mode = 1
         val = mode
@@ -69,7 +78,8 @@ class Max3700ExtGPIO():
                            v=True)
         return reply[0]
 
-    def modeGet(self):
+    def modeGet(self) -> list:
+        """"""
         reply = self.i2c.readRegister(self.devID, self.modeReg, 1)
         if self.v:
             if reply != -1:
@@ -80,14 +90,14 @@ class Max3700ExtGPIO():
                                v=True)
         return reply
 
-    def bankModeSet(self, val=0x55, B=0, N=7):
+    def bankModeSet(self, val=0x55, B=0, N=7) -> list:
         if (B+N) > 7:
             N = 7-B #Set upto 7 banks
         reply = self.i2c.writeRegister(self.devID, self.bankModeOffset+B, [val]*N)
         CON_prn.printf( '%s: bankMode Set: %s', par=(self.ID, self.RES[reply[0]]) )
         return reply
 
-    def bankModeGet(self, B=0, N=7):
+    def bankModeGet(self, B=0, N=7) -> list:
         if (B+N) > 7:
             N = 7-B #Get upto 7 banks
         reply = self.i2c.readRegister(self.devID, self.bankModeOffset+B, N)
@@ -108,9 +118,7 @@ class Max3700ExtGPIO():
 ##        return reply[0]
 
     def pinWrite(self, pin, valList):
-        """
-        Set the state of the specific pin(s)# on the MX3700
-        """
+        """Set the state of the specific pin(s)# on the MX3700"""
         if type(valList) == int:
             valList = [valList]
         for val in valList:
@@ -123,9 +131,7 @@ class Max3700ExtGPIO():
         return reply[0]
 
     def portWrite(self, port, val):
-        """
-        Set the state of the specific port# on the MX3700
-        """
+        """Set the state of the specific port# on the MX3700"""
         portReg = self.portRegOffset +self.pinZeroOffset +port
         reply = self.i2c.writeRegister(self.devID, portReg, [val&0xff])
         if self.v:
@@ -133,9 +139,7 @@ class Max3700ExtGPIO():
         return reply[0]
 
     def pinRead(self, pinList):
-        """
-        Read the state of the specific pin(s)# on the MX3700
-        """
+        """Read the state of the specific pin(s)# on the MX3700"""
         if type(pinList) == int:
             pinList = [pinList]
         result = []
@@ -151,9 +155,7 @@ class Max3700ExtGPIO():
         return result
         
     def portRead(self, port):
-        """
-        Read the state of the specific port# on the MX3700
-        """
+        """Read the state of the specific port# on the MX3700"""
         portReg = self.portRegOffset +self.pinZeroOffset +port
         reply = self.i2c.readRegister(self.devID, portReg, 1)
         if reply != -1:

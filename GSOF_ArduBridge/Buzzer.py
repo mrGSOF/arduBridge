@@ -19,10 +19,6 @@ The play function should be called with optional repeat value.
 The default repeat value is 1.
 """
 
-"""
-The Buzzer class is designed to play a sound file using the winsound module. When the play method is called, it will play the sound file specified in the fileName attribute a number of times equal to the repeat attribute. If an argument is passed to the repeat parameter of the play method, it will use that value instead of the default value stored in the repeat attribute.
-
-"""
 __version__ = "1.0.0"
 
 __author__ = "Guy Soffer"

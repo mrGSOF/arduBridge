@@ -39,9 +39,10 @@ from GSOF_ArduBridge import BridgeSerial
 from GSOF_ArduBridge import CON_prn
 
 class ArduBridgeGPIO():
-    OUTPUT = 0
-    INPUT = 1
-    SERVO = 2
+    OUTPUT = 0 #< To set the pin to digital output mode
+    INPUT = 1  #< To set the pin to digital input mode
+    SERVO = 2  #< To set the pin to servo mode
+    
     def __init__(self, bridge=False, v=False):
         self.v = v
         self.comm = bridge
@@ -91,7 +92,7 @@ class ArduBridgeGPIO():
         return -1
 
     def servoWrite(self, pin, val):
-        """Set the angle of a servo motor attached to a digital pin (an integer from 0 to 180)"""
+        """Set the angle of a servo motor attached to a digital pin (an integer from 0 to 255)"""
         val = int(val)
         pin = int(pin)
         vDat = [ord('S'), pin, val]

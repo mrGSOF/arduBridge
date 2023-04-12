@@ -15,25 +15,21 @@
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
-Class for establishing a serial communication link with the GSOF_ArduinoBridge firmware.
-It provides methods for sending and receiving data over the serial link, and for opening and closing the connection.
-The send method sends a list of bytes over the serial link, using an escape code sequence to represent certain special bytes.
-The receive method receives data from the serial link and returns it as a list of bytes.
-The open and close methods allow the user to open and close the serial connection.
-
-The object is constructed using the supplied serial device name and baud-rate as an input arguments.
-The send and receive methodes are thread protected using internal semaphores.
+Class of a basic serial communication methods.
+The object is constructed with the supplied serial device and baud-rate as an input arguments.
+The send and receive methods are thread protected using internal semaphores.
 Special data bytes such as RST(0x1b) and ESC(0x5c) are send using an escape code sequence.
 The escape code sequence is generated as follow:
 Instead of sending the value 0x1b, send the byte sequence 0x5c followed by 0xb1
 Instead of sending the value 0x5c, send the byte sequence 0x5c followed by 0xc5
-Other values are sent as is and without any modification.
+All rest of the values are sent without any manipulations.
 
 By: Guy Soffer (gsoffer@yahoo.com)
 Date: 10/April/2020
 """
 
 __version__ = "1.1.0"
+
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]
@@ -45,11 +41,11 @@ __status__ = "Production"
 import serial, time, threading, sys
 
 class ArduBridgeComm():
-    """ Open, Close, Send, Receive methods """
-    RST  = 0x1b
-    ESC  = 0x5c
-    CR   = 0x0d
-    LF   = 0x0a
+    """Open, Close, Send, Receive methods"""
+    RST  = 0x1b #< Reset symbol
+    ESC  = 0x5c #< Escape symbol
+    CR   = 0x0d #< Carriage retuen
+    LF   = 0x0a #< Linefeed
     ERR  = -1
 
     def __init__(self, COM='COM1', baud=9600, v=False, PortStatusReport=False):
@@ -70,14 +66,16 @@ class ArduBridgeComm():
         self.baud = baud
         self.COM = COM
         
-    def sendReset(self):
+    def sendReset(self) -> None:
+        """Send the reset command to the Arduino"""
         self.semaTX.release()
         if self.pyVer < 3.0:
             self.uart_wr(chr(self.RST))
         else:
             self.uart_wr( bytes([self.RST]) )
         
-    def send(self, vDat):
+    def send(self, vDat) -> None:
+        """Send list of bytes over the serial link"""
         self.semaTX.acquire()
         if ( self.LINK == True):
             done = False
@@ -109,7 +107,8 @@ class ArduBridgeComm():
             self.uart_wr( vStr )
         self.semaTX.release()
 
-    def getByte(self):
+    def getByte(self) -> list:
+        """Returns a list with single byte received over the serial link"""
         c = []
         trail = self.RxTry
         while (len(c)==0) and (trail > 0):
@@ -125,7 +124,8 @@ class ArduBridgeComm():
             print('Error - %s RX timeout'%(self.ser.port))
         return c
         
-    def receive(self, N):
+    def receive(self, N) -> list:
+        """Returns a list with maximum N received bytes with timeout of 0.1 sec"""
         N = int(N)
         self.semaRX.acquire()
         vDat = [-1]*N
@@ -163,12 +163,14 @@ class ArduBridgeComm():
         self.semaRX.release()
         return ERR
 
-    def ReportLinkStatus(self, val):
+    def ReportLinkStatus(self, val) -> None:
+        """Returns True is serial link is active"""
         self.LINK = val
         if (self.LinkReport):
             self.LinkReport(val)
         
-    def OpenClosePort(self, val):
+    def OpenClosePort(self, val) -> None:
+        """Open (1) or close (0) the serial link"""
         if (val):
             try:
                 self.ser.open()
@@ -187,7 +189,8 @@ class ArduBridgeComm():
             self.LINK = False
             print('ArduBridge COM is closed')
 
-    def try_to_open_new_port(self):
+    def try_to_open_new_port(self) -> None:
+        """Retry to open the serial link every 0.5 sec"""
         self.ser.close()
         while self.ser.isOpen() == False:
             print('COM is dead!! - retry a connection')
@@ -198,7 +201,8 @@ class ArduBridgeComm():
                 pass
         print('COM connection reastablished!!')
 
-    def uart_flush(self):
+    def uart_flush(self) -> None:
+        """Flash the serial FIFO"""
         if (self.LINK):
             v=[1]
             while len(v) > 0:
@@ -208,7 +212,8 @@ class ArduBridgeComm():
                     comm = self.try_to_open_new_port()
                     v = [1]
 
-    def uart_wr(self, dat):
+    def uart_wr(self, dat) -> None:
+        """Send list of bytes over the serial link, attempt to open the link if closed"""
         if (self.LINK):
             try:
                 self.ser.write(dat)

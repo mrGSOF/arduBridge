@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
-Simple function to manage debug print-out to file and console
+Function to manage debug print outs to file and console.
 """
 
 """
@@ -26,11 +26,12 @@ par: a tuple containing values to use in place of the format specifiers in text.
 data: a string that is appended to the end of the output.
 v: a boolean value indicating whether the output should be printed to the console.
 _file: a file object to which the output should be written. If this argument is False, the output is not written to a file.
-The printf function first constructs the string to be printed by replacing the format specifiers in text with the values in par and appending data to the end. It then prints the resulting string to the console if v is True and writes the string to a file if _file is a file object that is not closed.
+The printf function first constructs the string to be printed by replacing the format specifiers in text with the values
+in par and appending data to the end. It then prints the resulting string to the console if v is True and writes the string
+to a file if _file is a file object that is not closed.
 """
 
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]

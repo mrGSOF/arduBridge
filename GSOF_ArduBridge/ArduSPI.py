@@ -49,11 +49,12 @@ from GSOF_ArduBridge import BridgeSerial
 from GSOF_ArduBridge import CON_prn
 
 class ArduBridgeSPI():
-    MODE0 = 0
-    MODE1 = 1
-    MODE2 = 2
-    MODE3 = 3
-    OFF   = 4
+    MODE0 = 0 #< Clock is normally low, Data is sampled on the transition from low to high (leading edge)
+    MODE1 = 1 #< Clock is normally low, Data is sampled on the transition from high to low (trailing edge)
+    MODE2 = 2 #< Clock is normally high, Data is sampled on the transition from high to low (leading edge)
+    MODE3 = 3 #< Clock is normally high, Data is sampled on the transition from low to high (trailing edge)
+    OFF   = 4 #< SPI-OFF
+
     def __init__(self, bridge=False, v=False):
             self.v = v
             self.comm = bridge
