@@ -21,7 +21,6 @@ General Viewer class to display stuff to the console.
 """
 
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = []

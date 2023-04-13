@@ -32,12 +32,12 @@ import time
 
 class stepperMotor():
     def __init__(self, gpio=False, pinMap=[0,1,2,3], pos=0, maxV=10, acc=1, pwrPin=13):
-        self.gpio = gpio
-        self.pinMap = pinMap
-        self.pwrPin = pwrPin
-        self.maxV = 0.0
-        self.acc = 0.0
-        self.state=[[0,0,0,1],
+        self.gpio = gpio       #< GPIO object
+        self.pinMap = pinMap   #< GPO pin mapping
+        self.pwrPin = pwrPin   #< Power enable pin (optional)
+        self.maxV = 0.0        #< N.A. Maximum steps/sec
+        self.acc = 0.0         #< N.A.
+        self.state=[[0,0,0,1], #< General sequence to step 2-phase stepper
                     [0,0,1,1],
                     [0,0,1,0],
                     [0,1,1,0],
@@ -50,21 +50,25 @@ class stepperMotor():
         self.absolutePos = pos
 
     def config(self):
-        self.gpio.pinMode(self.pwrPin, 0) #set all pins to outputs
-        self.power(0)                     #power-off
+        """"""
+        self.gpio.pinMode(self.pwrPin, self.gpio.OUTPUT) #< set all pins to outputs
+        self.power(0)                     #< power-off
        
         if self.gpio != False:
+            ### Set all pins to output and low
             for pin in self.pinMap:
-                self.gpio.pinMode(pin, 0) #set all pins to outputs
-                self.gpio.digitalWrite(pin, 0) #set all pins to outputs
+                self.gpio.pinMode(pin, self.gpio.OUTPUT)
+                self.gpio.digitalWrite(pin, 0)
 
     def power(self, val):
+        """Apply power to the stepper (optional)"""
         if self.pwrPin != False:
-            self.gpio.digitalWrite(self.pwrPin, val) #set all pins to outputs
+            self.gpio.digitalWrite(self.pwrPin, val)
 
     def moveTo(self, endPos, v=1, acc=1):
+        """Step the stepper to endPos position (steps)""" 
         endPos = int(endPos)
-        self.power(1)                     #power-on
+        self.power(1)                     #< power-on
         direction = -1
         if  (endPos -self.absolutePos) > 0:
             direction = 1
@@ -89,6 +93,7 @@ class stepperMotor():
         print('Position %d'%(self.absolutePos))
 
     def moveRel(self, dPos, v=1, acc=1):
+        """Step the stepper dPos steps relative to its current position (steps)""" 
         self.moveTo(self.absolutePos + dPos, v, acc)
 
 ###    def turn(self, speed=1, acceleration=1):

@@ -42,9 +42,7 @@ class ArduPidThread(BT.BasicThread):
     """
     """
     def __init__(self, bridge, nameID, Period, fbPin, outFunc, viewer={}):
-        """
-        T is the step period-time. If T == 0, The process will run only once.
-        """
+        """T is the step period-time. If T == 0, The process will run only once"""
         #super(StoppableThread, self).__init__()
         BT.BasicThread.__init__(self, nameID=nameID, Period=Period, viewer=viewer)
         self.ardu = bridge      #The Arduino-Bridge object
@@ -81,11 +79,12 @@ class ArduPidThread(BT.BasicThread):
         self.filterN = 1
         self._filterN = 0
         
-    def enIO(self, val=True):
+    def enIO(self, val=True) -> None:
         self.enOut = val
         self.enInput = val
 
-    def start(self):
+    def start(self) -> None:
+        """Start the controller"""
         self.T0 = time.time()
         BT.BasicThread.start(self)
         if self.enOut:
@@ -93,11 +92,8 @@ class ArduPidThread(BT.BasicThread):
         else:
             print('%s: Started OFF line'%(self.name))
 
-    def process(self):
-        """
-        Your PID code should go here.
-        """
-        ## \/ Code begins below \/
+    def process(self) -> None:
+        """The controllers"""
         #Get the feedback
         feedback = 25.0
         if self.enInput:
@@ -144,26 +140,30 @@ class ArduPidThread(BT.BasicThread):
             if abs(feedback-self.ct) < self.Rise_tolerance:
                 self.ctrl_Settle = time.time() -self.ctrl_Z0
                 print('Settle-Time: %6.2f'%(self.ctrl_Settle))
-        ## /\  Code ends above  /\
 
-    def stop(self):
+    def stop(self) -> None:
+        """Terminate the controller (thread)"""
         self.setOutput(0)
         BT.BasicThread.stop(self)
 
-    def pause(self):
+    def pause(self) ->None:
+        """Pause the controller"""
         self.setOutput(0)
         BT.BasicThread.pause(self)
 
-    def ctrl(self, target):
+    def ctrl(self, target) -> None:
+        """Set the target set-point (temperature)"""
         self.ct = target
         self.ctrl_Rise = -1
         self.ctrl_Settle = -1
         self.ctrl_Z0 = time.time()
 
-    def setOutput(self, val):
+    def setOutput(self, val) -> None:
+        """Set the controllers output (H-Bridge)"""
         self.outFunc(val)
 
-    def getFeedback(self):
+    def getFeedback(self) -> float:
+        """Read the feedback (temperature sensor)"""
         #Steinhart formula
         Tbin = self.ardu.an.analogRead(self.fbPin)
         if (Tbin <= 0) or (Tbin >= 1023):

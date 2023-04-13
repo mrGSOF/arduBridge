@@ -18,11 +18,10 @@ Class to build a simple real-time PID control-loop as a thread.
 Features:
 - Exponential pulse-shaping filter on the control signal.
 - Moving average filter on the feedback.
-= Works with the old H-bridge setup.
+- Works with the old H-bridge setup.
 """
 
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = [""]
@@ -37,24 +36,21 @@ from GSOF_ArduBridge import PidAlgorithm
 from GSOF_ArduBridge import movAvg
 
 class ArduPidThread(BT.BasicThread):
-    """
-    """
+    """Stand alone real-time PID temperature controller (thread)"""
     def __init__(self, bridge, nameID, Period, fbPin, outPin, dirPin, viewer={}):
-        """
-        T is the step period-time. If T == 0, The process will run only once.
-        """
+        """T is the step period-time. If T == 0, The process will run only once"""
         #super(StoppableThread, self).__init__()
         BT.BasicThread.__init__(self, nameID=nameID, Period=Period, viewer=viewer)
-        self.ardu = bridge   #The Arduino-Bridge object
-        self.fbPin = fbPin   #save the pin# that should be used
-        self.outPin = outPin #save the pin# that should be used
-        self.dirPin = dirPin #save the pin# that should be used
-        self.ct = 25.0       #Init value of target value
+        self.ardu = bridge   #< The Arduino-Bridge object
+        self.fbPin = fbPin   #< save the pin# that should be used
+        self.outPin = outPin #< save the pin# that should be used
+        self.dirPin = dirPin #< save the pin# that should be used
+        self.ct = 25.0       #< Init value of target value
         self.ct_now = self.ct
-        self.RC_div_DT = 100.0 #Period #Exponential pulse-shaping coef'
+        self.RC_div_DT = 100.0  #< Period #Exponential pulse-shaping coef'
         self.PID = PidAlgorithm.PidAlgorithm( P=1, I=0, D=0)
-        self.PID.outMax = 100   #Maximum output value
-        self.PID.outMin = -100  #Minimum output value
+        self.PID.outMax = 100   #< Maximum output value
+        self.PID.outMin = -100  #< Minimum output value
 
         if self.ardu:
             self.ardu.gpio.pinMode(self.dirPin, 0) #Set the pins direction to output
@@ -83,10 +79,12 @@ class ArduPidThread(BT.BasicThread):
         self.fbFilter = movAvg.Stat_Recursive_X_Array( X=[25]*4 )
         
     def enIO(self, val=True):
+        """"""
         self.enOut = val
         self.enInput = val
 
     def start(self):
+        """Start the controller"""
         self.T0 = time.time()
         BT.BasicThread.start(self)
         if self.enOut:
@@ -95,9 +93,7 @@ class ArduPidThread(BT.BasicThread):
             print('%s: Started OFF line'%(self.name))
 
     def process(self):
-        """
-        Your PID code should go here.
-        """
+        """The controllers code"""
         ## \/ Code begins below \/
         #Get the feedback
         feedback = 25.0
@@ -132,20 +128,24 @@ class ArduPidThread(BT.BasicThread):
         ## /\  Code ends above  /\
 
     def stop(self):
+        """Terminate the controller (thread)"""
         self.setOutput(0)
         BT.BasicThread.stop(self)
 
     def pause(self):
+        """Pause the controller"""
         self.setOutput(0)
         BT.BasicThread.pause(self)
 
     def ctrl(self, target):
+        """Set the target set-point (temperature)"""
         self.ct = target
         self.ctrl_Rise = -1
         self.ctrl_Settle = -1
         self.ctrl_Z0 = time.time()
 
     def setOutput(self, val):
+        """Set the controllers output (H-Bridge)"""
         #set H-bridge direction
         h = 0 #Heating up
         if val < 0:
@@ -159,6 +159,7 @@ class ArduPidThread(BT.BasicThread):
             self.ardu.an.analogWrite(self.outPin, val)
 
     def getFeedback(self):
+        """Read the feedback (temperature sensor)"""
         #Steinhart formula
         Tbin = self.ardu.an.analogRead(self.fbPin)
         if (Tbin <= 0) or (Tbin >= 1023):

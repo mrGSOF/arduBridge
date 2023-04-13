@@ -16,11 +16,10 @@
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 
 General UDP transmitter.
-1. Send a any type of list to the specific ip/port.
+1. Send any type of list to the specific ip/port.
 """
 
 __version__ = "1.0.0"
-
 __author__ = "Guy Soffer"
 __copyright__ = "Copyright 2019"
 __credits__ = []
