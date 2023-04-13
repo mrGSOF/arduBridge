@@ -2,17 +2,28 @@
 import time
 
 """
-This is a Python class for interacting with the PCA9685 PWM controller via I2C. The PCA9685 is a 16-channel, 12-bit pulse width modulation (PWM) controller that can be used to control the intensity of LED lighting or the position of servo motors, among other things.
+This is a Python class for interacting with the PCA9685 PWM controller via I2C.
+The PCA9685 is a 16-channel, 12-bit pulse width modulation (PWM) controller that can be used
+to control the intensity of LED lighting or the position of servo motors, among other things.
 
 The class has several methods:
+__init__(self, i2c, dev=PCA9685_ADDRESS): This is the constructor for the class.
+It initializes the class with an I2C object and the device address of the PCA9685 (0x40 by default).
+It also initializes the device by setting all outputs to 0 and configuring the device clock.
 
-__init__(self, i2c, dev=PCA9685_ADDRESS): This is the constructor for the class. It initializes the class with an I2C object and the device address of the PCA9685 (which is a constant set to 0x40). It also initializes the device by setting all outputs to 0 and configuring the device to use an external clock and to enable the output driver.
+setFreq(self, freq_hz): This method sets the PWM frequency of the PCA9685.
+The frequency must be between 40 and 1600 Hz. The method calculates the prescale value needed to achieve the
+desired frequency and sets it in the device's PRESCALE register. It also puts the device into sleep mode, updates
+the PRESCALE register, and then restores the device to its previous mode.
 
-setFreq(self, freq_hz): This method sets the PWM frequency of the PCA9685. The frequency must be between 40 and 1600 Hz. The method calculates the prescale value needed to achieve the desired frequency and sets it in the device's PRESCALE register. It also puts the device into sleep mode, updates the PRESCALE register, and then restores the device to its previous mode.
+setOnOff(self, channel, on, off): This method sets the "on" and "off" times for a single PWM channel.
+The "on" time is the delay until the signal transitions from low to high, and the "off" time is the pulse
+width (the time the signal stays high). Both times are specified in ticks, with a tick being the time it
+takes for the device's internal timer to increment by 1.
+The PCA9685 has a 12-bit timer, so there are 4096 ticksin a full timer cycle.
 
-setOnOff(self, channel, on, off): This method sets the "on" and "off" times for a single PWM channel. The "on" time is the delay until the signal transitions from low to high, and the "off" time is the pulse width (the time the signal stays high). Both times are specified in ticks, with a tick being the time it takes for the device's internal timer to increment by 1. The PCA9685 has a 12-bit timer, so there are 4096 ticks in a full timer cycle.
-
-setAllOnOff(self, on, off): This method sets the "on" and "off" times for all PWM channels at once. It works in the same way as the setOnOff method, but applies the specified times to all channels
+setAllOnOff(self, on, off): This method sets the "on" and "off" times for all PWM channels at once.
+It works in the same way as the setOnOff method, but applies the specified times to all channels
 """
 
 ### Registers/etc:
@@ -56,7 +67,7 @@ class PCA9685():
         self.i2c.writeRegister(self.dev, MODE1, [mode1])
         time.sleep(0.01)  #< wait for oscillator
 
-    def setFreq(self, freq_hz):
+    def setFreq(self, freq_hz) -> None:
         """Set the PWM frequency to the provided value between 40 to 1600 hertz"""
         prescaleval = 25000000.0    #< 25MHz
         prescaleval /= self.maxTime #< 12-bit
@@ -74,7 +85,7 @@ class PCA9685():
         time.sleep(0.01)
         self.i2c.writeRegister(self.dev, MODE1, [oldmode|0x80])
 
-    def setOnOff(self, channel, on, off):
+    def setOnOff(self, channel, on, off) -> None:
         """
         Sets a single PWM channel.
         channel: The channel that should be updated with the new values (0..15)
@@ -86,14 +97,14 @@ class PCA9685():
         self.i2c.writeRegister(self.dev, OUT0_OFF_L +4*channel, [off&0xff])
         self.i2c.writeRegister(self.dev, OUT0_OFF_H +4*channel, [off>>8])
 
-    def setAllOnOff(self, on, off):
+    def setAllOnOff(self, on, off) -> None:
         """Sets all PWM channels"""
         self.i2c.writeRegister(self.dev, ALL_OUT_ON_L, [on&0xff])
         self.i2c.writeRegister(self.dev, ALL_OUT_ON_H, [on>>8])
         self.i2c.writeRegister(self.dev, ALL_OUT_OFF_L, [off&0xff])
         self.i2c.writeRegister(self.dev, ALL_OUT_OFF_H, [off>>8])
 
-    def setPwm(self, pin, perc):
+    def setPwm(self, pin, perc) -> None:
         """
         Sets a single PWM channel.
         channel: The channel that should be updated with the new values (0..15)
@@ -105,7 +116,7 @@ class PCA9685():
             ticks = maxTicks
         self.setOnOff(pin, 0, ticks)
 
-    def digitalWrite(self, pin, val):
+    def digitalWrite(self, pin, val) -> int:
         """
         Emulates an Arduino digitalWrite command to set a GPO pin.
         pin: The channel that should be updated with the new values (0..15)
@@ -116,7 +127,7 @@ class PCA9685():
         self.setPwm(pin, val)
         return 1
 
-    def analogWrite(self, pin, val):
+    def analogWrite(self, pin, val) -> int:
         """
         Emulates an Arduino analogWrite command to set a single PWM channel.
         channel: The channel that should be updated with the new values (0..15)

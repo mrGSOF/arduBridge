@@ -68,6 +68,7 @@ class ExtGpioStack():
                 print('No I2C object...')
 
     def pinMode(self, pin, mode):
+        """"""
         if (mode != 0):
             mode = 1
         pin -= 1
@@ -81,9 +82,7 @@ class ExtGpioStack():
         return reply[0]
 
     def pinWrite(self, pin, valList):
-        """
-        Set the state of the specific pin(s)# on the Electrode-Driver-Stack
-        """
+        """Set the state of the specific pin(s)# on the Electrode-Driver-Stack"""
         pin -= 1
         if type(valList) == int:
             valList = [valList]
@@ -101,10 +100,8 @@ class ExtGpioStack():
             pin += 1
         return 1
 
-    def pinRead(self, pinList):
-        """
-        Read the state of the specific pin(s)# on the Electrode-Driver-Stack
-        """
+    def pinRead(self, pinList) -> list:
+        """Read the state of the specific pin(s)# on the Electrode-Driver-Stack"""
         if type(pinList) == int:
             pinList = [pinList]
         result = []
@@ -122,19 +119,15 @@ class ExtGpioStack():
                 return -1
         return result
 
-    def pinPulse(self, pin, onTime):
-        """
-        Pulse the the specific pin# on the Electrode-Driver-Stack of onTime [sec]
-        """
+    def pinPulse(self, pin, onTime) -> int:
+        """Pulse the the specific pin# on the Electrode-Driver-Stack of onTime (sec)"""
         self.pinWrite(pin, 1)
         time.sleep(onTime)
         self.pinWrite(pin, 0)
         return 1
 
     def pin2dev( self, electrode_number ):
-        """
-        Each device has 20-IO pins
-        """
+        """Each device has 20-IO pins"""
         if electrode_number < 20:
             if len(self.ExtGpio) > 2:
                 return self.ExtGpio[2]

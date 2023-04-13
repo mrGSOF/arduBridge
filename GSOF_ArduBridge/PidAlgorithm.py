@@ -29,7 +29,7 @@ The class stores its state.
 """
 
 """
-This is a Python class for implementing a PID (proportional-integral-derivative) controller.
+Python class for implementing a PID (proportional-integral-derivative) controller.
 PID controllers are used in control systems to maintain a given setpoint by continuously calculating
 and adjusting the control input based on the error between the setpoint and the current process value.
 The class has several features, including the ability to measure the rise time and settle time of each command,
@@ -83,6 +83,7 @@ class PidAlgorithm():
         self.cycle = 0
 
     def NextStep(self, ctrl, feedback, dt):
+        """Calculates the next step by using the setpoint (ctrl), feedback, and time period)"""
         if dt < 0.0001:
             print('PID divid by zero! dt is too low')
             return
@@ -134,6 +135,7 @@ class PidAlgorithm():
         return self.output
 
     def getStatus(self):
+        """Returns the state of the PID controller as string"""
         s = 'Cyc: %d, '%(self.cycle) 
         s +='Ct: %6.1f, Fb: %6.1f, Delta: %6.2f, Sum: %6.2f, Diff: %6.2f, Out: %6.2f'%(self.ctrl,
                                                                                        self.feedback[-1],
