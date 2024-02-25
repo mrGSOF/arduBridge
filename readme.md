@@ -1,7 +1,7 @@
 # Introduction
-The ArduBridge (GSOF_ArduBridge) is a software designed to be a bridge between python and an Arduino.
+The ArduBridge (GSOF_ArduBridge) is a software package designed to be a bridge between Python and an Arduino.
 The ArduShield (GSOF_ArduShield) is an expansion board for the Arduino Uno R3 that adds additional features and connectors to attach devices such as servos, DC motors, analog sensors, high-power actuators, etc.
-The main computer run the python script and the ArduBridge send the commands to the Arduino over USB(RS232). This provides a convinient way to develop real-time algorithms on the main computer and use of the sensors and actuators via the Arduino. In addition, the electronic hardware can be used without the ArduBridge software by programming the Arduino directly in C/C++.
+The main computer runs the Python script and the ArduBridge sends the commands to the Arduino over USB(RS232). This provides a convinient way to develop real-time algorithms on the main computer and use of the sensors and actuators via the Arduino. In addition, the electronic hardware can be used without the ArduBridge software by programming the Arduino directly in C/C++.
 
 # Shield hardware
 The ArduShield includes a dual H-bridge capable of driving DC motors, Thermo Electric Coolers (TEC), and other high-power devices up to 12V / 2A.
@@ -18,6 +18,7 @@ To program the Arduino use the xloader application (https://github.com/xinabox/x
 2.	Select the COM port that the Arduino is connected to.
 3.	Select the Hex file "Bridge_Ctrl_V18.ino.hex" (or the most updated FW you have).
 4.	Press the "Upload" button and wait for the programming operation to finish after a few seconds.
+![Alt text](./Documentation/arduBridge_FW_upload.png "Firmware update")
 
 ## Python modules installation
 Before installing the ArduShield module, make sure Python 3.7 or above is installed (https://www.python.org/) together with the latest pyserial module (use the command "pip install pyserial" to install it).<br />
@@ -35,5 +36,5 @@ You can interact the Arduino using the ardu and ards objects (refer to the [tuto
  
 # Acknowledgements
 I want to thank the following beta testers for their valuable contributions in the developent of the ArduBridge program:
-James Perry, Laura Leclerc, Kenza Samlali, Tzur Soffer, and Sam Little.
-Their feedback and suggestions were instrumental in identifying and resolving any issues in the program. I would especially like to acknowledge James Perry for using the Ardubridge in all of his academic publications and teaching new students how to use it as well.
+James Perry (Ph.D.), Laura Leclerc, Kenza Samlali (Ph.D.), Tzur Soffer, and Sam Little.
+Their feedback and suggestions were instrumental in identifying and resolving any issues in the program. I would especially like to acknowledge James and Tzur. James used the Ardubridge in all of his academic publications and teaching new students how to use it as well. Tzur automated his room and build autonomous robots using the ArduBridge environment.
