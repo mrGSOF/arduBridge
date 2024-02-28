@@ -23,15 +23,23 @@
    "python setup.py install"
 """
 
-from distutils.core import setup
+
+#from distutils.core import setup
+from setuptools import setup
 
 def readme():
     with open('README.md') as f:
         return f.read()
 
+from setuptools import setup
+
 setup(
-      name='Ardu-BridgeStack',
+      name='GSOF_ArduBridge',
       version='0.1',
+#      install_requires=[
+#          'requests',
+#          'importlib-metadata; python_version<"3.10"',
+#      ],
       description='Protocol stack for bridge between the Arduino and Python',
       long_description=readme(),
       classifiers=[
