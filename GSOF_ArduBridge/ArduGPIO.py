@@ -51,7 +51,7 @@ class ArduBridgeGPIO():
 
     def setMode(self, pin, mode, init=0):
         """Set the mode of a digital pin on the Arduino (INPUT, OUTPUT, SERVO)"""
-        pinMode(pin, mode, init=0)
+        self.pinMode(pin, mode, init=0)
 
     def pinMode(self, pin, mode, init=0):
         """Set the mode of a digital pin on the Arduino (INPUT, OUTPUT, SERVO)"""
