@@ -5,7 +5,7 @@ To customize the environment to your needs. You will need to change
 he parameters in the "PARAMETER BLOCK" in the __main__ section
 
 By: Guy Soffer
-Date: 11/Jule/2018
+Date: 19/Feb/2024
 """
 
 #Basic modules to load
@@ -19,7 +19,7 @@ from GSOF_ArduBridge import UDP_Send                     #< Send telemetry over 
 
 def extEval(s):
     s=str(s)
-    print s
+    print(s)
     eval(s)
 
 def close():
@@ -29,23 +29,28 @@ def close():
 
 if __name__ == "__main__":
     #\/\/\/ CHANGE THESE PARAMETERS \/\/\/
-    import Guy_proto as protocol #<--Your experiment protocol file name
-    port = "COM6"                #< Change to the correct COM-Port to access the Arduino
+    from modules import Chip104_protocol as protocol #<--Your experiment protocol file name
+    port = "COM7"                #< Change to the correct COM-Port to access the Arduino
     baudRate = 115200*2          #< ArduBridge_V1.0 uses 115200 other versions use 230400 = 115200*2 
-    ONLINE = False#True#False    #< True to enable work with real Arduino, False for simulation only
+    ONLINE = True#False          #< True to enable work with real Arduino, False for simulation only
     PID1 = False                 #< True / False to build a PID controller
     PID2 = False                 #< True / False to build a PID controller
     ELEC_EN = True #False        #< True to enable the real electrodes, False for simulation only
-    STACK_BUILD = [0x40,0x41,0x42,0x43,0x44,0x45]
-    PORT_BASE = 7000 #7000
-    REMOTE_CTRL_PORT = PORT_BASE +10 #-1
+    STACK_BUILD = [
+        0x40,0x41,  #< HV-Electrod-Driver #1
+        0x43,0x42,  #< HV-Electrod-Driver #2
+        0x44,0x45   #< HV-Electrod-Driver #3
+        #0x46,0x47   #< HV-Electrod-Driver #4
+        ]
+    PORT_BASE = 8000 #7000                       #< Port to send status packets
+    REMOTE_CTRL_PORT = None #PORT_BASE +10 #None #< Port to listen to for remote commands 
     #/\/\/\   PARAMETERS BLOCK END  /\/\/\
     
     udpSendPid = UDP_Send.udpSend(nameID='', DesIP="127.0.0.1", DesPort=PORT_BASE +0)
     udpSendChip = UDP_Send.udpSend(nameID='', DesIP="127.0.0.1", DesPort=PORT_BASE +1)
     udpCamMgr = UDP_Send.udpSend(nameID='', DesIP="127.0.0.1", DesPort=PORT_BASE +3)
     udpConsol = False
-    if REMOTE_CTRL_PORT > 1:
+    if REMOTE_CTRL_PORT != None:
         udpConsol = udpControl.udpControl(nameID="udpIDLE", RxPort=REMOTE_CTRL_PORT, callFunc=extEval)
         print("Remote-Consol-Active on port %s\n"%(str(REMOTE_CTRL_PORT)))
     print("Using port %s at %d"%(port, baudRate))
@@ -59,6 +64,7 @@ if __name__ == "__main__":
     ExtGpio = ElectrodeGpioStack.ExtGpioStack(i2c=ardu.i2c, devList=STACK_BUILD, v=False)#True)
     ExtGpio.init()
     ExtGpio.init()
+    ardu.ExtGpio = ExtGpio
     ardu.Reset()
     print("Ready...\n")
 
