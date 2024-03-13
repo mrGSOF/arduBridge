@@ -19,12 +19,11 @@
  Under windows install:
    "setup.bat"
 
- Direct install (all systems):
+ Direct install for all systems:
    "python setup.py install"
 """
 
 
-#from distutils.core import setup
 from setuptools import setup
 
 def readme():
@@ -40,17 +39,30 @@ setup(
 #          'requests',
 #          'importlib-metadata; python_version<"3.10"',
 #      ],
+      
       description='Protocol stack for bridge between the Arduino and Python',
       long_description=readme(),
       classifiers=[
-        'Development Status ::  Production',
+        'Development Status ::  Production/Stable',
         'License :: GPL-3.0-or-later',
-        'Programming Language :: Python :: 2.7 and Python 3',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Topic :: Communications and control:: ',
       ],
       platforms = 'any',
       keywords='ArduBridge',
-      url='None',
+      url = 'https://github.com/mrGSOF/arduBridge.git',
       author='Guy Soffer',
       author_email='gsoffer@yahoo.com',
       license='GPL-3.0-or-later',
