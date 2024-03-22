@@ -35,11 +35,6 @@ from setuptools import setup
 setup(
       name='GSOF_ArduBridge',
       version='0.1',
-#      install_requires=[
-#          'requests',
-#          'importlib-metadata; python_version<"3.10"',
-#      ],
-      
       description='Protocol stack for bridge between the Arduino and Python',
       long_description=readme(),
       classifiers=[
@@ -67,4 +62,7 @@ setup(
       author_email='gsoffer@yahoo.com',
       license='GPL-3.0-or-later',
       packages=['GSOF_ArduBridge'],
+      install_requires=[
+        'pyserial>=2.7',
+    ]
 )
