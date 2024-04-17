@@ -14,14 +14,10 @@
 
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
-
-Class to access the external-GPIO connected to the Arduino-Bridge via I2C.
-This class is using the BridgeSerial class object to generate I2C-Bus cycles
-over with the Arduino-Bridge hardware.
 """
 
 """
-The Max3700 is an I2C General Purpose Input/Output (GPIO) device connected.
+The Max3700 is an I2C General Purpose Input/Output (GPIO) device.
 The class includes methods to control it over the I2C bus.
 The __init__ method initializes the class with a reference to an I2C object and the
 device ID of the external GPIO device. It also has some class variables for storing the
@@ -58,6 +54,7 @@ class Max3700ExtGPIO():
         self.pinRegOffset = 0x24
         self.bankModeOffset = 0x09
         self.pinZeroOffset = pinZeroOffset
+        self.maxPorts = 7
         
         self.modeReg = 0x04
         self.RES = {1:'OK', 0:'ERR', -1:'ERR'}
@@ -90,23 +87,29 @@ class Max3700ExtGPIO():
                                v=True)
         return reply
 
-    def bankModeSet(self, val=0x55, B=0, N=7) -> list:
-        if (B+N) > 7:
-            N = 7-B #Set upto 7 banks
+    def setBankMode(self, val=0x55, B=0, N=7) -> list:
+        if (B+N) > self.maxPorts:
+            N = self.maxPorts-B #< Set upto 7 banks
         reply = self.i2c.writeRegister(self.devID, self.bankModeOffset+B, [val]*N)
         CON_prn.printf( '%s: bankMode Set: %s', par=(self.ID, self.RES[reply[0]]) )
         return reply
 
-    def bankModeGet(self, B=0, N=7) -> list:
-        if (B+N) > 7:
-            N = 7-B #Get upto 7 banks
+    def bankModeSet(self, val=0x55, B=0, N=7) -> list:
+        return self.setBankMode(val, B, N)
+
+    def getBankMode(self, B=0, N=7) -> list:
+        if (B+N) > self.maxPorts:
+            N = self.maxPorts-B #< Get upto 7 banks
         reply = self.i2c.readRegister(self.devID, self.bankModeOffset+B, N)
         CON_prn.printf( '%s: bankMode: %s', par=(self.ID, str(reply)) )
         return reply
 
+    def bankModeGet(self, B=0, N=7) -> list:
+        return getBankMode(B, N)
+
 ##    def pinMode(self, pin, mode):
 ##        """
-##        Set the mode of the specific pin# on the MX3700
+##        Set the mode of the specific pin#
 ##        """
 ##        reg = pin/4 +self.pinModeOffset
 ##        bitField = pin%4
@@ -117,8 +120,8 @@ class Max3700ExtGPIO():
 ##            CON_prn.printf('DIR%d: %s - %s', par=(pin, self.DIR[mode], self.RES[reply[0]]), v=True)
 ##        return reply[0]
 
-    def pinWrite(self, pin, valList):
-        """Set the state of the specific pin(s)# on the MX3700"""
+    def setPin(self, pin, valList):
+        """Set the state of the specific pin(s)#"""
         if type(valList) == int:
             valList = [valList]
         for val in valList:
@@ -130,16 +133,22 @@ class Max3700ExtGPIO():
             pin += 1
         return reply[0]
 
-    def portWrite(self, port, val):
-        """Set the state of the specific port# on the MX3700"""
+    def pinWrite(self, pin, val):
+        return self.setPin(pin, valList)
+
+    def setPort(self, port, val):
+        """Set the state of the specific port#"""
         portReg = self.portRegOffset +self.pinZeroOffset +port
         reply = self.i2c.writeRegister(self.devID, portReg, [val&0xff])
         if self.v:
             CON_prn.printf('%s: POPT%d-Set: %s', par=(self.ID, port, self.RES[reply[0]]), v=True)
         return reply[0]
 
-    def pinRead(self, pinList):
-        """Read the state of the specific pin(s)# on the MX3700"""
+    def portWrite(self, port, val):
+        return self.setPort(port, val)
+
+    def getPin(self, pinList):
+        """Read the state of the specific pin(s)#"""
         if type(pinList) == int:
             pinList = [pinList]
         result = []
@@ -153,9 +162,12 @@ class Max3700ExtGPIO():
                 CON_prn.printf('%s: PIN%d-Get: Error', par=(self.ID, pin), v=self.v)
                 result.append(-1)
         return result
+
+    def pinRead(self, pin):
+        return self.getPin(pin)
         
-    def portRead(self, port):
-        """Read the state of the specific port# on the MX3700"""
+    def getPort(self, port):
+        """Read the state of the specific port#"""
         portReg = self.portRegOffset +self.pinZeroOffset +port
         reply = self.i2c.readRegister(self.devID, portReg, 1)
         if reply != -1:
@@ -163,3 +175,6 @@ class Max3700ExtGPIO():
             return reply[0]
         CON_prn.printf('%s: PORT%d-Get: Error', par=(self.ID, port), v=self.v)
         return -1
+
+    def portRead(self, port):
+        return self.getPort(port)
