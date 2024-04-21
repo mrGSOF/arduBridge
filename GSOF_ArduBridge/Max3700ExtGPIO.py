@@ -105,7 +105,7 @@ class Max3700ExtGPIO():
         return reply
 
     def bankModeGet(self, B=0, N=7) -> list:
-        return getBankMode(B, N)
+        return self.getBankMode(B, N)
 
 ##    def pinMode(self, pin, mode):
 ##        """

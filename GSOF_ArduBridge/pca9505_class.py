@@ -49,7 +49,7 @@ def pinPortMask(pin):
     return (pin, port, mask)
 
 class PCA9505():
-    maxPorts = 8 #< But only 5 are used
+    maxPorts = 5 #< But only 5 are used
     IP_base  = 0x0
     OP_base  = 0x08
     PI_base  = 0x10
@@ -72,7 +72,7 @@ class PCA9505():
         return self.i2c.readRegister(self.devID, self.AUTO_INC|reg, N)
 
     def _setRegisters(self, reg, vals):
-        reply = self.i2c.writeRegister(self.devID, self.AUTO_INC|reg, vals)
+        return self.i2c.writeRegister(self.devID, self.AUTO_INC|reg, vals)
         
     def modeSet(self, mode=1, transitionDetection=0) -> list:
         return -1
@@ -80,24 +80,28 @@ class PCA9505():
     def modeGet(self) -> list:
         return -1
         
-    def setBankMode(self, val=0xff, B=0, N=7) -> list:
-        if (B+N) > self.maxPorts:
-            N = self.maxPorts-B
-        reply = self_setRegisters(self.IOC_base+B, [val]*N)
-        CON_prn.printf( '%s: bankMode Set: %s', par=(self.ID, self.RES[reply[0]]) )
+    def setPortMode(self, port=0, val=[0xff]) -> list:
+        if (type(val) == int) or (type(val) == float):
+            val = [val]
+        N = len(val)
+        if (port+N) > self.maxPorts:
+            N = self.maxPorts-port
+            val = val[0:N+1]
+        reply = self._setRegisters(self.IOC_base+port, val)
+        CON_prn.printf( '%s: port direction Set: %s', par=(self.ID, str(self.RES[reply[0]])) )
         return reply
 
-    def bankModeSet(self, B=0, N=7) -> list:
-        return setBankMode(val, B, N)
+    def bankModeSet(self, port=0, N=5) -> list:
+        return setPortMode(val, port, N)
     
-    def getBankMode(self, B=0, N=7) -> list:
-        if (B+N) > self.maxPorts:
-            N = self.maxPorts-B
-        reply = self._getRegisters(self.IOC_base+B, N)
-        CON_prn.printf( '%s: bankMode: %s', par=(self.ID, str(reply)) )
+    def getPortMode(self, port=0, N=5) -> list:
+        if (port+N) > self.maxPorts:
+            N = self.maxPorts-port
+        reply = self._getRegisters(self.IOC_base+port, N)
+        CON_prn.printf( '%s: port direction: %s {bit: 0-%s}', par=(self.ID, str(reply), self.MODE[0]) )
         return reply
 
-    def bankModeGet(self, B=0, N=7) -> list:
+    def bankModeGet(self, B=0, N=5) -> list:
         return self.getBankMode(B, N)
 
 ##    def pinMode(self, pin, mode):

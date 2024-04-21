@@ -60,13 +60,18 @@ if __name__ == "__main__":
         print("Connecting to Arduino ON-LINE.")
     else:
         print("Arduino OFF-LINE. Simulation mode")
-
-    ExtGpio = ElectrodeGpioStack.ExtGpioStack(i2c=ardu.i2c, devList=STACK_BUILD, v=False)#True)
-    ExtGpio.init()
-    ExtGpio.init()
-    ardu.ExtGpio = ExtGpio
-    ardu.Reset()
-    print("Ready...\n")
+    
+    ExtGpio = []
+        if STACK_BUILD != []:
+        ardu.i2c.setFreq(400000) #< MAX3700 maximum clock rate
+        ExtGpio = ElectrodeGpioStack.ExtGpioStack(i2c=ardu.i2c, devList=STACK_BUILD, v=False)#True)
+        ExtGpio.init()
+        ExtGpio.init()
+        ardu.ExtGpio = ExtGpio
+        ardu.Reset()
+        print("External GPIO Ready\n")
+    else:
+        print("External GPIO skipped\n")
 
     if PID1 == True:
         PID = threadPID.ArduPidThread(bridge=ardu,
