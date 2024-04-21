@@ -61,7 +61,7 @@ class PCA9505():
     POL = {0:'Active-High', 1:'Active-Low'}
     MODE = {0:'Shutdown', 1:'Normal'}
     
-    def __init__(self, i2c=False, devID=0x20, pinZeroOffset=8, v=False):
+    def __init__(self, i2c=False, devID=0x20, pinZeroOffset=0, v=False):
         self.ID = 'PCA9505-ID 0x%02x'%(devID)
         self.v = v
         self.i2c = i2c
@@ -133,11 +133,11 @@ class PCA9505():
     def setPort(self, port, val):
         """Set the state of the specific port#"""
         if port < self.maxPorts:
+            val &= 0xff
             self.portOut[port] = val
             portReg = self.OP_base +port
-            reply = self._setRegisters(portReg, [val&0xff])
-            if self.v:
-                CON_prn.printf('%s: POPT%d-Set: %s', par=(self.ID, port, self.RES[reply[0]]), v=True)
+            reply = self._setRegisters(portReg, [val])
+            CON_prn.printf('%s: POPT%d <-- %d %s', par=(self.ID, port, val, self.RES[reply[0]]), v=self.v)
             return reply[0]
         return -1
 
@@ -148,17 +148,16 @@ class PCA9505():
         """Read the state of the specific pin(s)#"""
         if type(pinList) == int:
             pinList = [pinList]
+            
         result = []
         for pin in pinList:
             _pin, _port, _mask = pinPortMask(pin)
-            reply = self.getPort(_port, 1)
+            reply = self.getPort(_port)
+            val = "Error"
             if reply != -1:
-                reply[0] = (reply[0]>>_pin)&1
-                CON_prn.printf('%s: PIN%d = %d', par=(self.ID, pin, reply[0]), v=self.v)
-                result.append(reply[0])
-            else:
-                CON_prn.printf('%s: PIN%d-Get: Error', par=(self.ID, pin), v=self.v)
-                result.append(-1)
+                reply = str((reply>>_pin)&1)
+            result.append(reply)
+            CON_prn.printf('%s: <%d> (PORT%d<%d>) = %s', par=(self.ID, pin, _port, _pin, reply), v=self.v)
         return result
 
     def pinRead(self, pin):
@@ -166,7 +165,6 @@ class PCA9505():
 
     def _setPin(self, pin, val) -> int:
         _pin, port, mask = pinPortMask(pin)
-        print(_pin, port, hex(mask))
         pVal = self.portOut[port]
         if (val != 0):
             pVal |= mask        #< Set bit
@@ -181,10 +179,10 @@ class PCA9505():
 
         for val in valList:
             port, pVal = self._setPin(pin, val)
-            reply = self.setPort(port, [pVal])
-            CON_prn.printf('%s: PIN%d-Set: %d - %s', par=(self.ID, pin, val, self.RES[reply[0]]), v=self.v)
+            reply = self.setPort(port, pVal)
+            CON_prn.printf('%s: PORT%d<%d> <-- %d - %s', par=(self.ID, port, pin, val, self.RES[reply]), v=self.v)
             pin += 1
-        return reply[0]
+        return reply
 
     def pinWrite(self, pin, val):
         return self.setPin(pin, valList)
