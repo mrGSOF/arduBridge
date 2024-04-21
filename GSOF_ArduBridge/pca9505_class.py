@@ -43,9 +43,9 @@ __status__ = "Production"
 from GSOF_ArduBridge import CON_prn
 
 def pinPortMask(pin):
+    port  = int(pin/8)
     pin   = int(pin%8)
     mask  = int(1<<pin)
-    port  = int(pin/8)
     return (pin, port, mask)
 
 class PCA9505():
@@ -153,7 +153,7 @@ class PCA9505():
             _pin, _port, _mask = pinPortMask(pin)
             reply = self.getPort(_port, 1)
             if reply != -1:
-                reply[0] = reply[0]>>_pin
+                reply[0] = (reply[0]>>_pin)&1
                 CON_prn.printf('%s: PIN%d = %d', par=(self.ID, pin, reply[0]), v=self.v)
                 result.append(reply[0])
             else:
@@ -164,22 +164,39 @@ class PCA9505():
     def pinRead(self, pin):
         return self.getPin(pin)
 
+    def _setPin(self, pin, val) -> int:
+        _pin, port, mask = pinPortMask(pin)
+        print(_pin, port, hex(mask))
+        pVal = self.portOut[port]
+        if (val != 0):
+            pVal |= mask        #< Set bit
+        else:
+            pVal &= (mask^0xff) #< Clear bit
+        return (port, pVal)
+
     def setPin(self, pin, valList):
         """Set the state of the specific pin(s)#"""
         if type(valList) == int:
             valList = [valList]
 
         for val in valList:
-            _pin, _port, _mask = pinPortMask(pin)
-            pVal = self.portOut[_port]
-            if (val != 0):
-                pVal |= _mask        #< Set bit
-            else:
-                pVal &= (_mask^0xff) #< Clear bit
-            reply = self.setPort(_port, [pVal])
+            port, pVal = self._setPin(pin, val)
+            reply = self.setPort(port, [pVal])
             CON_prn.printf('%s: PIN%d-Set: %d - %s', par=(self.ID, pin, val, self.RES[reply[0]]), v=self.v)
             pin += 1
         return reply[0]
 
     def pinWrite(self, pin, val):
         return self.setPin(pin, valList)
+
+if __name__ == "__main__":
+    gpio = PCA9505()
+    gpio.portOut[1] = 0
+    print(gpio.portOut[1])
+    gpio.portOut[1] = gpio._setPin(10, 1)
+    print(gpio.portOut[1])
+
+    gpio.portOut[2] = 0xff
+    print(gpio.portOut[2])
+    gpio.portOut[2] = gpio._setPin(22, 0)
+    print(gpio.portOut[2])
