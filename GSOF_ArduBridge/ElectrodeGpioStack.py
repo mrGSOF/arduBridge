@@ -56,35 +56,26 @@ class ExtGpioStack():
                 dev.i2c = self.i2c
                 self.ExtGpio.append( dev )
 
-                #self.ExtGpio[-1].setAllPinsToOutout()
-                #self.ExtGpio[-1].getAllPinsModes()
-                self.ExtGpio[-1].setMode(mode=1)              #< Activating the MAX3700
-                self.ExtGpio[-1].getMode()                   #< Readback the MAX3700 mode
-                self.ExtGpio[-1].getBankMode()
-
-                self.ExtGpio[-1].setBankMode(0x55, B=0, N=7) #< Setting all of its ports to output
-                self.ExtGpio[-1].getBankMode()               #< Reading back the written data
-
-                #self.ExtGpio[-1].setAllPins(0)
-                for pin in [0,8,16,24]:
-                    self.ExtGpio[-1].portWrite(pin, 0x00)    #< Simultaniously write 0 to 8 pins
-
+                self.ExtGpio[-1].getAllPinsModes()
+                self.ExtGpio[-1].setAllPinsToOutput()
+                self.ExtGpio[-1].getAllPinsModes()
+                self.ExtGpio[-1].clearAllPins()
             else:
                 print('No I2C object...')
 
-    def pinMode(self, pin, mode):
-        """"""
-        if (mode != 0):
-            mode = 1
-        pin -= 1
-        dev = self.pin2dev(pin)
-        reg = self.pin2mReg(pin)
-
-        self.i2c.writeRegister(dev, reg, [mode])
-        reply = self.comm.receive(1)
-        if self.v:
-            CON_prn.printf('ExtDir%d: %s - %s', par=(pin, self.DIR[mode], self.RES[reply]), v=True)
-        return reply[0]
+##    def pinMode(self, pin, mode):
+##        """"""
+##        if (mode != 0):
+##            mode = 1
+##        pin -= 1
+##        dev = self.pin2dev(pin)
+##        reg = self.pin2mReg(pin)
+##
+##        self.i2c.writeRegister(dev, reg, [mode])
+##        reply = self.comm.receive(1)
+##        if self.v:
+##            CON_prn.printf('ExtDir%d: %s - %s', par=(pin, self.DIR[mode], self.RES[reply]), v=True)
+##        return reply[0]
 
     def pinWrite(self, pin, valList):
         """Set the state of the specific pin(s)# on the Electrode-Driver-Stack"""
@@ -97,7 +88,7 @@ class ExtGpioStack():
             dev = self.pin2dev(pin)
             if dev != -1:
                 pinDev = self.pin2pin[pin%20]
-                reply = dev.pinWrite(pinDev, val)
+                reply = dev.setPin(pinDev, val)
                 CON_prn.printf('ExtPinSet%d: %d - %s', par=(pin, val, self.RES[reply]), v=self.v)
             else:
                 CON_prn.printf('ExtPinSet%d: Out of range', par=(pin), v=self.v)
@@ -115,7 +106,7 @@ class ExtGpioStack():
             dev = self.pin2dev(pin)
             if dev != -1:
                 pinDev = pin%20
-                reply = dev.pinRead(pinDev)
+                reply = dev.getPin(pinDev)
                 val = reply[0]
                 CON_prn.printf('ExtPin%d: %d', par=(pin, val), v=self.v)
                 result.append(val)
@@ -126,9 +117,9 @@ class ExtGpioStack():
 
     def pinPulse(self, pin, onTime) -> int:
         """Pulse the the specific pin# on the Electrode-Driver-Stack of onTime (sec)"""
-        self.pinWrite(pin, 1)
+        self.setPin(pin, 1)
         time.sleep(onTime)
-        self.pinWrite(pin, 0)
+        self.setPin(pin, 0)
         return 1
 
     def pin2dev( self, electrode_number ):

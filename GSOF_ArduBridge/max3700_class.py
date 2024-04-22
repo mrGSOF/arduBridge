@@ -87,26 +87,32 @@ class Max3700ExtGPIO():
                                v=True)
         return reply
 
-    def setBankMode(self, val=0x55, B=0, N=7) -> list:
+    def setBankMode(self, B=0, val=[0x55]) -> list:
+        if type(val) == int:
+            val = [val]
+        
+        N = len(val)
         if (B+N) > self.maxPorts:
-            N = self.maxPorts-B #< Set upto 7 banks
-        reply = self.i2c.writeRegister(self.devID, self.bankModeOffset+B, [val]*N)
+            N = self.maxPorts-B #< Set upto maxPort
+        reply = self.i2c.writeRegister(self.devID, self.bankModeOffset+B, val)
         CON_prn.printf( '%s: bankMode Set: %s', par=(self.ID, self.RES[reply[0]]) )
         return reply
 
-    def bankModeSet(self, val=0x55, B=0, N=7) -> list:
-        return self.setBankMode(val, B, N)
+    def setAllPinsToOutput(self):
+        self.setMode(mode=1)
+        return self.setBankMode(0, val=[0x55]*self.maxPorts)
 
     def getBankMode(self, B=0, N=7) -> list:
         if (B+N) > self.maxPorts:
-            N = self.maxPorts-B #< Get upto 7 banks
+            N = self.maxPorts-B #< Get upto maxPorts
         reply = self.i2c.readRegister(self.devID, self.bankModeOffset+B, N)
         CON_prn.printf( '%s: bankMode: %s', par=(self.ID, str(reply)) )
         return reply
 
-    def bankModeGet(self, B=0, N=7) -> list:
-        return self.getBankMode(B, N)
-
+    def getAllPinsModes(self):
+        self.getMode()
+        return self.getBankMode(B=0, N=self.maxPorts)
+        
 ##    def pinMode(self, pin, mode):
 ##        """
 ##        Set the mode of the specific pin#
@@ -136,6 +142,10 @@ class Max3700ExtGPIO():
     def pinWrite(self, pin, val):
         return self.setPin(pin, valList)
 
+    def clearAllPins(self):
+        for port in [0,8,16,24]: #range(0,self.maxPorts):
+            self.setPort(port, 0x00)
+        
     def setPort(self, port, val):
         """Set the state of the specific port#"""
         portReg = self.portRegOffset +self.pinZeroOffset +port
