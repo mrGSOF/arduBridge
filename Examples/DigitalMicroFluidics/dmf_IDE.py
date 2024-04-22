@@ -14,6 +14,8 @@ from GSOF_ArduBridge import udpControl                   #< To control the movem
 from GSOF_ArduBridge import ArduBridge                   #< The communication stack
 from GSOF_ArduBridge import ArduBridge_HW                #< ArduShield class
 from GSOF_ArduBridge import ElectrodeGpioStack           #< Stack of multiple electrode-driver boards
+from GSOF_ArduBridge import pca9505_class as PCA9505     #< PCA9505 port extender
+from GSOF_ArduBridge import max3700_class as MAX3700     #< MAX3700 port extender 
 from GSOF_ArduBridge import threadPID_HW11 as threadPID  #< Closed loop controller for temperature control
 from GSOF_ArduBridge import UDP_Send                     #< Send telemetry over UDP
 
@@ -30,18 +32,26 @@ def close():
 if __name__ == "__main__":
     #\/\/\/ CHANGE THESE PARAMETERS \/\/\/
     from modules import Chip104_protocol as protocol #<--Your experiment protocol file name
-    port = "COM7"                #< Change to the correct COM-Port to access the Arduino
+    port = "COM10"               #< Change to the correct COM-Port to access the Arduino
     baudRate = 115200*2          #< ArduBridge_V1.0 uses 115200 other versions use 230400 = 115200*2 
     ONLINE = True#False          #< True to enable work with real Arduino, False for simulation only
     PID1 = False                 #< True / False to build a PID controller
     PID2 = False                 #< True / False to build a PID controller
     ELEC_EN = True #False        #< True to enable the real electrodes, False for simulation only
     STACK_BUILD = [
-        0x40,0x41,  #< HV-Electrod-Driver #1
-        0x43,0x42,  #< HV-Electrod-Driver #2
-        0x44,0x45   #< HV-Electrod-Driver #3
-        #0x46,0x47   #< HV-Electrod-Driver #4
+        MAX3700.Max3700ExtGPIO(devID=0x40), #1 Top
+        MAX3700.Max3700ExtGPIO(devID=0x41), #1 Bottom
+
+        MAX3700.Max3700ExtGPIO(devID=0x42), #2 Top
+        MAX3700.Max3700ExtGPIO(devID=0x43), #2 Bottom
+
+        MAX3700.Max3700ExtGPIO(devID=0x44), #3 Top
+        MAX3700.Max3700ExtGPIO(devID=0x45), #3 Bottom
+
+        #MAX3700.Max3700ExtGPIO(devID=0x46), #4 Top
+        #MAX3700.Max3700ExtGPIO(devID=0x47), #4 Bottom
         ]
+
     PORT_BASE = 8000 #7000                       #< Port to send status packets
     REMOTE_CTRL_PORT = None #PORT_BASE +10 #None #< Port to listen to for remote commands 
     #/\/\/\   PARAMETERS BLOCK END  /\/\/\
@@ -62,9 +72,9 @@ if __name__ == "__main__":
         print("Arduino OFF-LINE. Simulation mode")
     
     ExtGpio = []
-        if STACK_BUILD != []:
+    if STACK_BUILD != []:
         ardu.i2c.setFreq(400000) #< MAX3700 maximum clock rate
-        ExtGpio = ElectrodeGpioStack.ExtGpioStack(i2c=ardu.i2c, devList=STACK_BUILD, v=False)#True)
+        ExtGpio = ElectrodeGpioStack.ExtGpioStack(i2c=ardu.i2c, extGpioStack=STACK_BUILD, v=False)#True)
         ExtGpio.init()
         ExtGpio.init()
         ardu.ExtGpio = ExtGpio

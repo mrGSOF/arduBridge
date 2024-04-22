@@ -36,31 +36,36 @@ __status__ = "Production"
 
 import time
 from GSOF_ArduBridge import CON_prn
-from GSOF_ArduBridge import Max3700ExtGPIO
 
 class ExtGpioStack():
-    def __init__(self, i2c=False, devList=[], v=False, pin2pin=False):
+    def __init__(self, i2c=False, extGpioStack=[], v=False, pin2pin=False):
         self.RES = {1:'OK', 0:'ERR', -1:'ERR'}
         self.v = v
         self.i2c = i2c
-        self.devList = devList
-        if len(self.devList) == 0:
-            self.devList = range(0x40, 0x48, 1)
+        self.extGpioStack = extGpioStack
         self.pin2pin = pin2pin
         if self.pin2pin == False:
             self.pin2pin = range(0,20,1)
 
     def init(self):
         self.ExtGpio = []
-        for dev in self.devList:
-            print('\nConfiguring port-extenderID 0x%02x'%(dev))
+        for dev in self.extGpioStack:
+            print('\nConfiguring port-extenderID 0x%02x'%(dev.devID))
             if self.i2c:
-                self.ExtGpio.append( Max3700ExtGPIO.Max3700ExtGPIO( i2c=self.i2c, devID=dev, v=self.v ) )
-                self.ExtGpio[-1].modeSet(mode=1)             #< Activating the MAX3700
-                self.ExtGpio[-1].modeGet()                   #< Readback the MAX3700 mode
-                self.ExtGpio[-1].bankModeGet()
-                self.ExtGpio[-1].bankModeSet(0x55, B=0, N=7) #< Setting all of its ports to output
-                self.ExtGpio[-1].bankModeGet()               #< Reading back the written data
+                dev.v = self.v
+                dev.i2c = self.i2c
+                self.ExtGpio.append( dev )
+
+                #self.ExtGpio[-1].setAllPinsToOutout()
+                #self.ExtGpio[-1].getAllPinsModes()
+                self.ExtGpio[-1].setMode(mode=1)              #< Activating the MAX3700
+                self.ExtGpio[-1].getMode()                   #< Readback the MAX3700 mode
+                self.ExtGpio[-1].getBankMode()
+
+                self.ExtGpio[-1].setBankMode(0x55, B=0, N=7) #< Setting all of its ports to output
+                self.ExtGpio[-1].getBankMode()               #< Reading back the written data
+
+                #self.ExtGpio[-1].setAllPins(0)
                 for pin in [0,8,16,24]:
                     self.ExtGpio[-1].portWrite(pin, 0x00)    #< Simultaniously write 0 to 8 pins
 

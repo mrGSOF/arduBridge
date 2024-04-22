@@ -62,7 +62,7 @@ class Max3700ExtGPIO():
         self.MODE = {0:'Shutdown', 1:'Normal'}
         self.tDet = {0:'Disable', 1:'Enable'}
 
-    def modeSet(self, mode=1, transitionDetection=0) -> list:
+    def setMode(self, mode=1, transitionDetection=0) -> list:
         """mode: 0 - Shutdown; 1 - Normal operation. transitionDetection: 0 - Disable; 1 - Enable"""
         if mode != 0:
             mode = 1
@@ -75,7 +75,7 @@ class Max3700ExtGPIO():
                            v=True)
         return reply[0]
 
-    def modeGet(self) -> list:
+    def getMode(self) -> list:
         """"""
         reply = self.i2c.readRegister(self.devID, self.modeReg, 1)
         if self.v:
