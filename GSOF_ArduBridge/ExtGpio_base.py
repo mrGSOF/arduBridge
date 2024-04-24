@@ -140,11 +140,10 @@ class ExtGPIO_base():
         if type(valList) == int:
             valList = [valList]
 
-        for val in valList:
+        for pin, val in zip(range(pin, pin+len(valList)), valList):
             port, pVal = self._setPin(pin, val)
             reply = self.setPort(port, pVal)
             CON_prn.printf('%s: PORT%d<%d> <-- %d - %s', par=(self.ID, port, pin, val, self.RES[reply]), v=self.v)
-            pin += 1
         return reply
 
     def getPin(self, pinList):

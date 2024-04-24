@@ -140,13 +140,12 @@ class Max3700ExtGPIO():
         """Set the state of the specific pin(s)#"""
         if type(valList) == int:
             valList = [valList]
-        for val in valList:
+        for pin, val in zip(range(pin, pin+len(valList)), valList):
             if (val != 0):
                 val = 1
             pinReg = self.pinReg +self.pinZeroOffset +pin
             reply = self._writeRegister(pinReg, [val])
             CON_prn.printf('%s: PIN%d-Set: %d - %s', par=(self.ID, pin, val, self.RES[reply[0]]), v=self.v)
-            pin += 1
         return reply[0]
 
     def clearAllPins(self):

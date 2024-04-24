@@ -22,12 +22,15 @@ with the GSOF-Arduino-Bridge firmware.
 """
 
 """
-This script seems to be for managing external General Purpose Input-Output (GPIO) connected to an Arduino microcontroller via I2C (Inter-Integrated Circuit). The script defines a class ExtGpioStack, which has methods to initialize the connection to the external GPIO, set the mode (input or output) of a specific pin, write a value to a specific pin, and read the value of a specific pin. It also has a method pin2dev which maps a pin number to the device ID of the external GPIO to which it is connected. The script also imports a class Max3700ExtGPIO which seems to be used for communication with the external GPIO via I2C
+Class to manage external General Purpose Input-Output (GPIO) cards.
+Defines a class ExtGpioStack, which has methods to initialize the connection to the external GPIO,
+set the mode (input or output) of a specific pin, write a value to a specific pin, and read the value of a specific pin.
+It also has a method pin2dev which maps a pin number to the device ID of the external GPIO to which it is connected.
 """
 __version__ = "1.0.0"
 
 __author__ = "Guy Soffer"
-__copyright__ = "Copyright 2019"
+__copyright__ = "Copyright 2024"
 __credits__ = [""]
 __license__ = "GPL-3.0-or-later"
 __maintainer__ = ""
@@ -38,76 +41,50 @@ import time
 from GSOF_ArduBridge import CON_prn
 
 class ExtGpioStack():
-    def __init__(self, i2c=False, extGpioStack=[], v=False, pin2pin=False):
-        self.RES = {1:'OK', 0:'ERR', -1:'ERR'}
+    self.RES = {1:'OK', 0:'ERR', -1:'ERR'}
+    def __init__(self, extGpioStack=[], v=False):
         self.v = v
-        self.i2c = i2c
         self.extGpioStack = extGpioStack
         self.pin2pin = pin2pin
-        if self.pin2pin == False:
-            self.pin2pin = range(0,20,1)
 
     def init(self):
         self.ExtGpio = []
-        for dev in self.extGpioStack:
+        for board in self.extGpioStack:
             print('\nConfiguring port-extenderID 0x%02x'%(dev.devID))
-            if self.i2c:
-                dev.v = self.v
-                dev.i2c = self.i2c
-                self.ExtGpio.append( dev )
+            dev = board["dev"]
+            dev.v = self.v
+            dev.getAllPinsModes()
+            dev.setAllPinsToOutput()
+            dev.getAllPinsModes()
+            dev.clearAllPins()
+            self.ExtGpio.append( board )
 
-                self.ExtGpio[-1].getAllPinsModes()
-                self.ExtGpio[-1].setAllPinsToOutput()
-                self.ExtGpio[-1].getAllPinsModes()
-                self.ExtGpio[-1].clearAllPins()
-            else:
-                print('No I2C object...')
-
-##    def pinMode(self, pin, mode):
-##        """"""
-##        if (mode != 0):
-##            mode = 1
-##        pin -= 1
-##        dev = self.pin2dev(pin)
-##        reg = self.pin2mReg(pin)
-##
-##        self.i2c.writeRegister(dev, reg, [mode])
-##        reply = self.comm.receive(1)
-##        if self.v:
-##            CON_prn.printf('ExtDir%d: %s - %s', par=(pin, self.DIR[mode], self.RES[reply]), v=True)
-##        return reply[0]
-
-    def pinWrite(self, pin, valList):
+    def setPin(self, pin, valList):
         """Set the state of the specific pin(s)# on the Electrode-Driver-Stack"""
         pin -= 1
         if type(valList) == int:
             valList = [valList]
-        for val in valList:
+        for pin, val in zip(range(pin, pin+len(valList)), valList):
             if (val != 0):
                 val = 1
-            dev = self.pin2dev(pin)
-            if dev != -1:
-                pinDev = self.pin2pin[pin%20]
-                reply = dev.setPin(pinDev, val)
+            _dev, _pin = self._pin2dev(pin)
+            if _dev != None:
+                reply = dev.setPin(_pin, val)
                 CON_prn.printf('ExtPinSet%d: %d - %s', par=(pin, val, self.RES[reply]), v=self.v)
             else:
                 CON_prn.printf('ExtPinSet%d: Out of range', par=(pin), v=self.v)
                 return -1
-            pin += 1
         return 1
 
-    def pinRead(self, pinList) -> list:
+    def getPin(self, pinList) -> list:
         """Read the state of the specific pin(s)# on the Electrode-Driver-Stack"""
         if type(pinList) == int:
             pinList = [pinList]
         result = []
         for pin in pinList:
-            pin -= 1
-            dev = self.pin2dev(pin)
-            if dev != -1:
-                pinDev = pin%20
-                reply = dev.getPin(pinDev)
-                val = reply[0]
+            _pin, _dev = self._pin2dev(pin)
+            if dev != None:
+                val = dev.getPin(_pin)
                 CON_prn.printf('ExtPin%d: %d', par=(pin, val), v=self.v)
                 result.append(val)
             else:
@@ -115,45 +92,18 @@ class ExtGpioStack():
                 return -1
         return result
 
-    def pinPulse(self, pin, onTime) -> int:
+    def pulsePin(self, pin, onTime) -> int:
         """Pulse the the specific pin# on the Electrode-Driver-Stack of onTime (sec)"""
         self.setPin(pin, 1)
         time.sleep(onTime)
         self.setPin(pin, 0)
         return 1
 
-    def pin2dev( self, electrode_number ):
-        """Each device has 20-IO pins"""
-        if electrode_number < 20:
-            if len(self.ExtGpio) > 0:
-                return self.ExtGpio[0]
-
-        if (electrode_number >= 20) and (electrode_number < 40):
-            if len(self.ExtGpio) > 1:
-                return self.ExtGpio[1]
-
-        if (electrode_number >= 40) and (electrode_number < 60): 
-            if len(self.ExtGpio) > 2:
-                return self.ExtGpio[2]
-
-        if (electrode_number >= 60) and (electrode_number < 80):
-            if len(self.ExtGpio) > 3:
-                return self.ExtGpio[3]
-
-        if (electrode_number >= 80) and (electrode_number < 100):
-            if len(self.ExtGpio) > 4:
-                return self.ExtGpio[4]
-
-        if (electrode_number >= 100) and (electrode_number < 120):
-            if len(self.ExtGpio) > 5:
-                return self.ExtGpio[5]
-
-        if (electrode_number >= 120) and (electrode_number < 140):
-            if len(self.ExtGpio) > 6:
-                return self.ExtGpio[6]
-
-        if (electrode_number >= 140) and (electrode_number < 160):
-            if len(self.ExtGpio) > 7:
-                return self.ExtGpio[7]
-
-        return -1
+    def _pin2dev( self, pin ):
+        """ """
+        for board in self.extGpioStack:
+            if (pin >= board["firstPin"]) and (pin <= board["lastPin"]):
+                dev = board["dev"]
+                pin = pin -board["firstPin"]
+                return (pin, dev)
+        return None
