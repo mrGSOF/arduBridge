@@ -17,11 +17,11 @@
 """
 
 """
-The Max3700 is an I2C General Purpose Input/Output (GPIO) device.
-The class includes methods to control it over the I2C bus.
-The __init__ method initializes the class with a reference to an I2C object and the
+The Max3700 is an comm General Purpose Input/Output (GPIO) device.
+The class includes methods to control it over the comm bus.
+The __init__ method initializes the class with a reference to an comm object and the
 device ID of the external GPIO device. It also has some class variables for storing the
-I2C register addresses for various functions of the device, such as setting the device
+comm register addresses for various functions of the device, such as setting the device
 mode or reading/writing to the device ports.
 The class has several methods for interacting with the external GPIO device.
 The modeSet method can be used to set the operating mode of the device, either "normal" or "shutdown".
@@ -45,22 +45,32 @@ __status__ = "Production"
 from GSOF_ArduBridge import CON_prn
 
 class Max3700ExtGPIO():
-    def __init__(self, i2c=False, devID=0x00, pinZeroOffset=8, v=False):
-        self.ID = 'MAX3700-ID 0x%02x'%(devID)
+    RES = {1:'OK', 0:'ERR', -1:'ERR'}
+    def __init__(self, comm=False, devID=0x00, v=False):
         self.v = v
-        self.i2c = i2c
+        self.comm = comm
         self.devID = devID
-        self.portRegOffset = 0x44
-        self.pinRegOffset = 0x24
-        self.bankModeOffset = 0x09
-        self.pinZeroOffset = pinZeroOffset
-        self.maxPorts = 7
-        
+
+        self.ID = 'MAX3700-ID 0x%02x'%(devID)
+
         self.modeReg = 0x04
-        self.RES = {1:'OK', 0:'ERR', -1:'ERR'}
+        self.bankModeReg = 0x09
+        self.pinReg = 0x24
+        self.portReg = 0x44
+        self.pinZeroOffset = 8
+
+        self.maxPorts = 7
+        self.maxPins = 20
+
         self.DIR = {0:'Active-Low', 1:'Active-High', 2:'Input without pullup', 3:'Input + pullup'}
         self.MODE = {0:'Shutdown', 1:'Normal'}
         self.tDet = {0:'Disable', 1:'Enable'}
+
+    def _getRegisters(self, reg, N):
+        return self.comm.readRegister(self.devID, reg, N)
+
+    def _setRegisters(self, reg, vals):
+        return self.comm.writeRegister(self.devID, reg, vals)
 
     def setMode(self, mode=1, transitionDetection=0) -> list:
         """mode: 0 - Shutdown; 1 - Normal operation. transitionDetection: 0 - Disable; 1 - Enable"""
@@ -68,7 +78,7 @@ class Max3700ExtGPIO():
             mode = 1
         val = mode
         val |= (transitionDetection&0x1)<<7
-        reply = self.i2c.writeRegister(self.devID, self.modeReg, [mode])
+        reply = self._writeRegisters(self.modeReg, [mode])
         if self.v:
             CON_prn.printf('%s: MODE-Set: %s',
                            par=(self.ID, self.RES[reply[0]]),
@@ -77,7 +87,7 @@ class Max3700ExtGPIO():
 
     def getMode(self) -> list:
         """"""
-        reply = self.i2c.readRegister(self.devID, self.modeReg, 1)
+        reply = self._readRegisters(self.modeReg, 1)
         if self.v:
             if reply != -1:
                 mode = reply[0]&1
@@ -94,7 +104,7 @@ class Max3700ExtGPIO():
         N = len(val)
         if (B+N) > self.maxPorts:
             N = self.maxPorts-B #< Set upto maxPort
-        reply = self.i2c.writeRegister(self.devID, self.bankModeOffset+B, val)
+        reply = self._writeRegister(self.bankModeReg+B, val)
         CON_prn.printf( '%s: bankMode Set: %s', par=(self.ID, self.RES[reply[0]]) )
         return reply
 
@@ -105,7 +115,7 @@ class Max3700ExtGPIO():
     def getBankMode(self, B=0, N=7) -> list:
         if (B+N) > self.maxPorts:
             N = self.maxPorts-B #< Get upto maxPorts
-        reply = self.i2c.readRegister(self.devID, self.bankModeOffset+B, N)
+        reply = self._readRegister(self.bankModeReg+B, N)
         CON_prn.printf( '%s: bankMode: %s', par=(self.ID, str(reply)) )
         return reply
 
@@ -133,14 +143,11 @@ class Max3700ExtGPIO():
         for val in valList:
             if (val != 0):
                 val = 1
-            pinReg = self.pinRegOffset +self.pinZeroOffset +pin
-            reply = self.i2c.writeRegister(self.devID, pinReg, [val])
+            pinReg = self.pinReg +self.pinZeroOffset +pin
+            reply = self._writeRegister(pinReg, [val])
             CON_prn.printf('%s: PIN%d-Set: %d - %s', par=(self.ID, pin, val, self.RES[reply[0]]), v=self.v)
             pin += 1
         return reply[0]
-
-    def pinWrite(self, pin, val):
-        return self.setPin(pin, valList)
 
     def clearAllPins(self):
         for port in [0,8,16,24]: #range(0,self.maxPorts):
@@ -148,14 +155,11 @@ class Max3700ExtGPIO():
         
     def setPort(self, port, val):
         """Set the state of the specific port#"""
-        portReg = self.portRegOffset +self.pinZeroOffset +port
-        reply = self.i2c.writeRegister(self.devID, portReg, [val&0xff])
+        portReg = self.portReg +self.pinZeroOffset +port
+        reply = self._writeRegister(portReg, [val&0xff])
         if self.v:
             CON_prn.printf('%s: POPT%d-Set: %s', par=(self.ID, port, self.RES[reply[0]]), v=True)
         return reply[0]
-
-    def portWrite(self, port, val):
-        return self.setPort(port, val)
 
     def getPin(self, pinList):
         """Read the state of the specific pin(s)#"""
@@ -163,8 +167,8 @@ class Max3700ExtGPIO():
             pinList = [pinList]
         result = []
         for pin in pinList:
-            pinReg = self.pinRegOffset +self.pinZeroOffset +pin
-            reply = self.i2c.readRegister(self.devID, pinReg, 1)
+            pinReg = self.pinReg +self.pinZeroOffset +pin
+            reply = self._readRegister(pinReg, 1)
             if reply != -1:
                 CON_prn.printf('%s: PIN%d = %d', par=(self.ID, pin, reply[0]), v=self.v)
                 result.append(reply[0])
@@ -173,18 +177,12 @@ class Max3700ExtGPIO():
                 result.append(-1)
         return result
 
-    def pinRead(self, pin):
-        return self.getPin(pin)
-        
     def getPort(self, port):
         """Read the state of the specific port#"""
-        portReg = self.portRegOffset +self.pinZeroOffset +port
-        reply = self.i2c.readRegister(self.devID, portReg, 1)
+        portReg = self.portReg +self.pinZeroOffset +port
+        reply = self._readRegister(portReg, 1)
         if reply != -1:
             CON_prn.printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
             return reply[0]
         CON_prn.printf('%s: PORT%d-Get: Error', par=(self.ID, port), v=self.v)
         return -1
-
-    def portRead(self, port):
-        return self.getPort(port)
