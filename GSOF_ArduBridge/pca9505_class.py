@@ -17,11 +17,11 @@
 """
 
 """
-The PCA9505 is an I2C General Purpose Input/Output (GPIO) device.
-The class includes methods to control it over the I2C bus.
-The __init__ method initializes the class with a reference to an I2C object and the
+The PCA9505 is an comm General Purpose Input/Output (GPIO) device.
+The class includes methods to control it over the comm bus.
+The __init__ method initializes the class with a reference to an comm object and the
 device ID of the external GPIO device. It also has some class variables for storing the
-I2C register addresses for various functions of the device, such as reading/writing to the device ports.
+comm register addresses for various functions of the device, such as reading/writing to the device ports.
 The class has several methods for interacting with the external GPIO device.
 The modeSet and modeGet methods are present for software competability with the MAX3700 class.
 The bankModeSet and bankModeGet methods can be used to set and get the direction
@@ -50,6 +50,7 @@ def pinPortMask(pin):
 
 class PCA9505():
     maxPorts = 5 #< But only 5 are used
+    maxPins = 40
     IP_base  = 0x0
     OP_base  = 0x08
     PI_base  = 0x10
@@ -61,25 +62,32 @@ class PCA9505():
     POL = {0:'Active-High', 1:'Active-Low'}
     MODE = {0:'Shutdown', 1:'Normal'}
     
-    def __init__(self, i2c=False, devID=0x20, pinZeroOffset=0, v=False):
+    def __init__(self, comm=False, devID=0x20, pinZeroOffset=0, v=False):
         self.ID = 'PCA9505-ID 0x%02x'%(devID)
         self.v = v
-        self.i2c = i2c
+        self.comm = comm
         self.devID = devID
         self.portOut = [0]*self.maxPorts
 
     def _getRegisters(self, reg, N):
-        return self.i2c.readRegister(self.devID, self.AUTO_INC|reg, N)
+        return self.comm.readRegister(self.devID, self.AUTO_INC|reg, N)
 
     def _setRegisters(self, reg, vals):
-        return self.i2c.writeRegister(self.devID, self.AUTO_INC|reg, vals)
+        return self.comm.writeRegister(self.devID, self.AUTO_INC|reg, vals)
         
-    def modeSet(self, mode=1, transitionDetection=0) -> list:
-        return -1
+### Device level API
+    def clearAllPins(self) -> None:
+        for port in range(0,self.maxPorts):
+            self.setPort(port, 0x00)
 
-    def modeGet(self) -> list:
-        return -1
-        
+    def setAllPinsToOutput(self) -> int:
+        return self.setBankMode(0, val=[self.OUTPUT]*self.maxPorts)
+
+    def getAllPinsModes(self) -> list:
+        self.getMode()
+        return self.getBankMode(B=0, N=self.maxPorts)
+
+### Port level API
     def setPortMode(self, port=0, val=[0xff]) -> list:
         if (type(val) == int) or (type(val) == float):
             val = [val]
@@ -91,7 +99,7 @@ class PCA9505():
         CON_prn.printf( '%s: port direction Set: %s', par=(self.ID, str(self.RES[reply[0]])) )
         return reply
 
-    def bankModeSet(self, port=0, N=5) -> list:
+    def setBankMode(self, port=0, N=5) -> list:
         return setPortMode(val, port, N)
     
     def getPortMode(self, port=0, N=5) -> list:
@@ -104,32 +112,6 @@ class PCA9505():
     def bankModeGet(self, B=0, N=5) -> list:
         return self.getBankMode(B, N)
 
-##    def pinMode(self, pin, mode):
-##        """
-##        Set the mode of the specific pin#
-##        """
-##        reg = pin/4 +self.pinModeOffset
-##        bitField = pin%4
-##        vDat = [ord('D'), pin, mode]
-##        self.comm.send(vDat)
-##        reply = self.comm.receive(1)
-##        if self.v:
-##            CON_prn.printf('DIR%d: %s - %s', par=(pin, self.DIR[mode], self.RES[reply[0]]), v=True)
-##        return reply[0]
-
-    def getPort(self, port):
-        """Read the state of the specific port#"""
-        portReg = self.IP_base +port
-        reply = self._getRegisters(portReg, 1)
-        if reply != -1:
-            CON_prn.printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
-            return reply[0]
-        CON_prn.printf('%s: PORT%d-Get: Error', par=(self.ID, port), v=self.v)
-        return -1
-
-    def portRead(self, port):
-        return self.getPort(port)
-
     def setPort(self, port, val):
         """Set the state of the specific port#"""
         if port < self.maxPorts:
@@ -141,27 +123,23 @@ class PCA9505():
             return reply[0]
         return -1
 
-    def portWrite(self, port, val):
-        return self.setPort(port, val)
+    def getPort(self, port):
+        """Read the state of the specific port#"""
+        portReg = self.IP_base +port
+        reply = self._getRegisters(portReg, 1)
+        if reply != -1:
+            CON_prn.printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
+            return reply[0]
+        CON_prn.printf('%s: PORT%d-Get: Error', par=(self.ID, port), v=self.v)
+        return -1
 
-    def getPin(self, pinList):
-        """Read the state of the specific pin(s)#"""
-        if type(pinList) == int:
-            pinList = [pinList]
-            
-        result = []
-        for pin in pinList:
-            _pin, _port, _mask = pinPortMask(pin)
-            reply = self.getPort(_port)
-            val = "Error"
-            if reply != -1:
-                reply = str((reply>>_pin)&1)
-            result.append(reply)
-            CON_prn.printf('%s: <%d> (PORT%d<%d>) = %s', par=(self.ID, pin, _port, _pin, reply), v=self.v)
-        return result
-
-    def pinRead(self, pin):
-        return self.getPin(pin)
+### Pin level API
+    def setPinMode(self, pin, mode):
+        """Set the direction of an individual pin"""
+        port, pVal = self._setPin(pin, mode)
+        reply = self.setPortMode(port, pVal)
+        CON_prn.printf('%s: BANK%d<%d> <-- %d - %s', par=(self.ID, port, pin, pVal, self.RES[reply]), v=self.v)
+        return reply
 
     def _setPin(self, pin, val) -> int:
         _pin, port, mask = pinPortMask(pin)
@@ -184,8 +162,21 @@ class PCA9505():
             pin += 1
         return reply
 
-    def pinWrite(self, pin, val):
-        return self.setPin(pin, valList)
+    def getPin(self, pinList):
+        """Read the state of the specific pin(s)#"""
+        if type(pinList) == int:
+            pinList = [pinList]
+            
+        result = []
+        for pin in pinList:
+            _pin, _port, _mask = pinPortMask(pin)
+            reply = self.getPort(_port)
+            val = "Error"
+            if reply != -1:
+                reply = str((reply>>_pin)&1)
+            result.append(reply)
+            CON_prn.printf('%s: <%d> (PORT%d<%d>) = %s', par=(self.ID, pin, _port, _pin, reply), v=self.v)
+        return result
 
 if __name__ == "__main__":
     gpio = PCA9505()
