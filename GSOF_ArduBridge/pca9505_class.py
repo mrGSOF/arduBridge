@@ -41,16 +41,12 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 from GSOF_ArduBridge import CON_prn
+from GSOF_ArduBridge import ExtGpio_base as BASE
 
-def pinPortMask(pin):
-    port  = int(pin/8)
-    pin   = int(pin%8)
-    mask  = int(1<<pin)
-    return (pin, port, mask)
-
-class PCA9505():
+class PCA9505(BASE):
     maxPorts = 5 #< But only 5 are used
-    maxPins = 40
+    maxPins  = 40
+    pinsPerPort = 8
     IP_base  = 0x0
     OP_base  = 0x08
     PI_base  = 0x10
@@ -62,7 +58,7 @@ class PCA9505():
     POL = {0:'Active-High', 1:'Active-Low'}
     MODE = {0:'Shutdown', 1:'Normal'}
     
-    def __init__(self, comm=False, devID=0x20, pinZeroOffset=0, v=False):
+    def __init__(self, comm=False, devID=0x20, v=False):
         self.ID = 'PCA9505-ID 0x%02x'%(devID)
         self.v = v
         self.comm = comm
@@ -81,11 +77,11 @@ class PCA9505():
             self.setPort(port, 0x00)
 
     def setAllPinsToOutput(self) -> int:
-        return self.setBankMode(0, val=[self.OUTPUT]*self.maxPorts)
+        return self.setPortMode(port=0, val=[self.OUTPUT]*self.maxPins/self.pinsPerPort)
 
     def getAllPinsModes(self) -> list:
         self.getMode()
-        return self.getBankMode(B=0, N=self.maxPorts)
+        return self.getPortMode(port=0, N=self.maxPorts)
 
 ### Port level API
     def setPortMode(self, port=0, val=[0xff]) -> list:
@@ -94,23 +90,16 @@ class PCA9505():
         N = len(val)
         if (port+N) > self.maxPorts:
             N = self.maxPorts-port
-            val = val[0:N+1]
-        reply = self._setRegisters(self.IOC_base+port, val)
+        reply = self._setRegisters(self.IOC_base+port, val[0:N])
         CON_prn.printf( '%s: port direction Set: %s', par=(self.ID, str(self.RES[reply[0]])) )
         return reply
 
-    def setBankMode(self, port=0, N=5) -> list:
-        return setPortMode(val, port, N)
-    
-    def getPortMode(self, port=0, N=5) -> list:
+    def getPortMode(self, port=0, N=1) -> list:
         if (port+N) > self.maxPorts:
             N = self.maxPorts-port
         reply = self._getRegisters(self.IOC_base+port, N)
         CON_prn.printf( '%s: port direction: %s {bit: 0-%s}', par=(self.ID, str(reply), self.MODE[0]) )
         return reply
-
-    def bankModeGet(self, B=0, N=5) -> list:
-        return self.getBankMode(B, N)
 
     def setPort(self, port, val):
         """Set the state of the specific port#"""
@@ -142,7 +131,7 @@ class PCA9505():
         return reply
 
     def _setPin(self, pin, val) -> int:
-        _pin, port, mask = pinPortMask(pin)
+        _pin, port, mask = BASE.pinPortMask(pin)
         pVal = self.portOut[port]
         if (val != 0):
             pVal |= mask        #< Set bit
@@ -169,7 +158,7 @@ class PCA9505():
             
         result = []
         for pin in pinList:
-            _pin, _port, _mask = pinPortMask(pin)
+            _pin, _port, _mask = BASE.pinPortMask(pin)
             reply = self.getPort(_port)
             val = "Error"
             if reply != -1:

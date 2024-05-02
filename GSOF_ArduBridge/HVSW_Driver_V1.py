@@ -40,76 +40,86 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-def pinPortMask(pin, pinsInPort=8):
-    port  = int(pin/pinsInPort)
-    pin   = int(pin%pinsInPort)
-    mask  = int(1<<pin)
-    return (pin, port, mask)
+from GSOF_ArduBridge import ExtGpio_base as BASE
+from GSOF_ArduBridge import max3700_class as MAX
 
-class ExtGPIO_base():
-    maxPorts = 0
-    maxPins = 0
-    OUTPUT = 0
-    INPUT  = 1
-    RES = {1:'OK', 0:'ERR', -1:'ERR'}
+class HVSW_Driver(BASE):
+    maxPorts = 14
+    maxPins = 40
 
     def __init__(self, comm=False, devID=0x00, v=False):
-        self.ID = 'ExtendedGPIO-ID 0x%02x'%(devID)
+        self.ID = "HVSW_Driver-V1 ID 0x%02x,0x%02x"%(devID+0, devID+1)
         self.v = v
         self.comm = comm
-        self.devID = devID
+        self.devs = [MAX.MAX3700AAI(comm=comm, devID=devID+0, v=v),
+                     MAX.MAX3700AAI(comm=comm, devID=devID+1, v=v)]
 
-### Device level API
+### Board level API
     def setMode(self, mode=0) -> int:
-        return -1
+        Pass = 1
+        for dev in devs:
+            Pass &= dev.setMode(mode)
+        return Pass
 
-    def getMode(self) -> int:
-        return -1
+    def getMode(self) -> list:
+        mode = []
+        for dev in devs:
+            mode.append(dev.setMode(mode))
+        return mode
         
     def clearAllPins(self) -> None:
-        return
+        for dev in devs:
+            dev.clearAllPins()
 
     def setAllPinsToOutput(self) -> int:
-        return 1
+        Pass = 1
+        for dev in devs:
+            Pass &= dev.setAllPinsToOutput()
+        return Pass
 
     def getAllPinsModes(self) -> list:
-        return [0]*self.maxPins
-        
-### Port level API
-    def setPortMode(self, port, val) -> list:
-        if type(val) == int:
-            val = [val]
-        return [1]*len(val)
+        mode = []
+        for dev in devs:
+            mode.append(dev.getAllPinsModes())
+        return mode
 
-    def setBankMode(self, port, val) -> list:
-        if type(val) == int:
-            val = [val]
-        return [1]*len(val)
+### Port level API
+    def setPortMode(self, port, val=[0x55]) -> list:
+        return [-1]
 
     def getPortMode(self, port=0, N=1) -> list:
-        return [0]*N
-
+        return [-1]
+ 
     def setPort(self, port, val) -> int:
-        """Set the state of the specific port#"""
-        return 1
+        return [-1]
 
     def getPort(self, port) -> int:
-        """Read the state of the specific port#"""
-        return 1
+        return -1
 
 ### Pin level API
     def setPinMode(self, pin, mode):
         """Set the direction of an individual pin"""
-        return 1
+        if pin < devs[0].maxPins:
+            dev = dev[0]
+        else:
+            dev = dev[1]
+            pin -= devs[0].maxPins
+        return dev.setPinMode(pin, mode)
 
     def setPin(self, pin, valList):
         """Set the state of the specific pin(s)#"""
         if type(valList) == int:
             valList = [valList]
-        return [1]*len(pinList)
+
+        for val in valList:
+            if pin < devs[0].maxPins:
+                dev = dev[0]
+            else:
+                dev = dev[1]
+                pin -= devs[0].maxPins
+            dev.setPinMode(pin, [val])
+            pin += 1
 
     def getPin(self, pinList):
         """Read the state of the specific pin(s)#"""
-        if type(pinList) == int:
-            pinList = [pinList]
-        return [1]*len(pinList)
+        return -1
