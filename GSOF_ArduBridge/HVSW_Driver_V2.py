@@ -17,7 +17,7 @@
 """
 
 """
-Class to access the High-Voltage-Switch Board (V1) that has two MAX3700AAI.
+Class to access the High-Voltage-Switch Board (V2) that has single PCA9505.
 """
 
 __version__ = "1.0.0"
@@ -30,52 +30,30 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 from GSOF_ArduBridge import HVSW_Driver_base as BASE
-from GSOF_ArduBridge import max3700_class as GPIO_IC
+from GSOF_ArduBridge import pca9505_class as GPIO_IC
 
 class HVSW_Driver(BASE):
     def __init__(self, comm=False, devID=0x00, startPin, endPin, v=False):
         super().__init__(startPin, endPin)
-        self.ID = "HVSW_Driver-V1 ID 0x%02x,0x%02x"%(devID+0, devID+1)
+        self.ID = "HVSW_Driver-V2 ID 0x%02x"%(devID)
         self.v = v
         self.comm = comm
-        self.devs = [GPIO_IC.MAX3700AAI(comm=comm, devID=devID+0, v=v),
-                     GPIO_IC.MAX3700AAI(comm=comm, devID=devID+1, v=v)]
+        self.dev = GPIO_IC.PCA9505_class(comm=comm, devID=devID, v=v)
 
     def initBoard(self):
-        for dev in self.devs:
-            dev.clearAllPins()
-            dev.setAllPinsToOutput()
-            
-### Pin level API
-##    def _setPinMode(self, pin, mode):
-##        """Set the direction of an individual pin"""
-##        if pin < devs[0].maxPins:
-##            dev = dev[0]
-##        else:
-##            dev = dev[1]
-##            pin -= devs[0].maxPins
-##        return dev.setPinMode(pin, mode)
+        dev.clearAllPins()
+        dev.setAllPinsToOutput()
 
     def setPin(self, pin, val):
         """Set the state of the specific pin#"""
         pin = super().setPin(pin)
-        if pin >= 0:
-            if pin < devs[0].maxPins:
-                dev = dev[0]
-            else:
-                dev = dev[1]
-                pin -= devs[0].maxPins
-            return dev.setPin(pin, val)
+        if (pin >= 0) and (pin < self.dev.maxPins):
+            return self.dev.setPin(pin, val)
         return -1
 
     def getPin(self, pin):
         """Read the state of the specific pin#"""
         pin = super().setPin(pin)
-        if pin >= 0:
-            if pin < devs[0].maxPins:
-                dev = dev[0]
-            else:
-                dev = dev[1]
-                pin -= devs[0].maxPins
-            return dev.getPin(pin)
+        if (pin >= 0) and (pin < self.dev.maxPins):
+            return self.dev.getPin(pin)
         return -1
