@@ -22,10 +22,7 @@ with the GSOF-Arduino-Bridge firmware.
 """
 
 """
-Class to manage external General Purpose Input-Output (GPIO) cards.
-Defines a class ExtGpioStack, which has methods to initialize the connection to the external GPIO,
-set the mode (input or output) of a specific pin, write a value to a specific pin, and read the value of a specific pin.
-It also has a method pin2dev which maps a pin number to the device ID of the external GPIO to which it is connected.
+Class to manage a stack of GPIO boards connected to an Arduino microcontroller.
 """
 __version__ = "1.0.0"
 
@@ -37,73 +34,39 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-import time
-from GSOF_ArduBridge import CON_prn
+from GSOF_ArduBridge import ExtGpio_base as BASE
 
-class ExtGpioStack():
-    self.RES = {1:'OK', 0:'ERR', -1:'ERR'}
+class ExtGpioStack(BASE):
     def __init__(self, extGpioStack=[], v=False):
         self.v = v
-        self.extGpioStack = extGpioStack
-        self.pin2pin = pin2pin
+        self.stack = extGpioStack
 
-    def init(self):
-        self.ExtGpio = []
-        for board in self.extGpioStack:
-            print('\nConfiguring port-extenderID 0x%02x'%(dev.devID))
-            dev = board["dev"]
+    def init(self) -> None:
+        for dev in self.stack:
+            print('\nConfiguring %s ID:%s [st:end]=%s'%(dev.ID, str(dev.getDevID()), , str(dev.getpinRange())))
             dev.v = self.v
-            dev.getAllPinsModes()
-            dev.setAllPinsToOutput()
-            dev.getAllPinsModes()
-            dev.clearAllPins()
-            self.ExtGpio.append( board )
+            dev.init()
 
-    def setPin(self, pin, valList):
-        """Set the state of the specific pin(s)# on the Electrode-Driver-Stack"""
-        pin -= 1
-        if type(valList) == int:
-            valList = [valList]
-        for pin, val in zip(range(pin, pin+len(valList)), valList):
-            if (val != 0):
-                val = 1
-            _dev, _pin = self._pin2dev(pin)
-            if _dev != None:
-                reply = dev.setPin(_pin, val)
-                CON_prn.printf('ExtPinSet%d: %d - %s', par=(pin, val, self.RES[reply]), v=self.v)
-            else:
-                CON_prn.printf('ExtPinSet%d: Out of range', par=(pin), v=self.v)
-                return -1
-        return 1
-
-    def getPin(self, pinList) -> list:
-        """Read the state of the specific pin(s)# on the Electrode-Driver-Stack"""
-        if type(pinList) == int:
-            pinList = [pinList]
-        result = []
-        for pin in pinList:
-            _pin, _dev = self._pin2dev(pin)
-            if dev != None:
-                val = dev.getPin(_pin)
-                CON_prn.printf('ExtPin%d: %d', par=(pin, val), v=self.v)
-                result.append(val)
-            else:
-                CON_prn.printf('ExtPin%d: Out of range', par=(pin), v=self.v)
-                return -1
-        return result
-
-    def pulsePin(self, pin, onTime) -> int:
-        """Pulse the the specific pin# on the Electrode-Driver-Stack of onTime (sec)"""
-        self.setPin(pin, 1)
-        time.sleep(onTime)
-        self.setPin(pin, 0)
-        return 1
-
-    def _pin2dev( self, pin ):
-        """ """
-        for board in self.extGpioStack:
-            if (pin >= board["firstPin"]) and (pin <= board["lastPin"]):
-                dev = board["dev"]
-                pin = pin -board["firstPin"]
-                return (pin, dev)
+    def _getBoard(self, pin):
+        for board in self.stack:
+            if board.isInRange(pin):
+                return board
         return None
+
+    def setPin(self, pin, valList) -> int:
+        for val in valList:
+            board = self._getBoard(pin)
+            board.setPin(pin, val)
+            pin += 1
+        return 1
+
+    def getPin(self, pinList) -> int:
+        vals = [0]*len(pinList)
+        for i,pin in enumerate(pinList):
+            board = self._getBoard(pin)
+            vals[i] = board.getPin(pin)
+        return vals
+
+    def pulsePin(self, pin, onTime) -> None:
+        board = self._getBoard(pin)
+        board.pulsePin(pin, onTime)

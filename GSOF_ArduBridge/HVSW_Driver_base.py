@@ -39,6 +39,7 @@ __license__ = "GPL-3.0-or-later"
 __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
+import time
 
 class HVSW_Driver_base():
     def __init__(self, startPin, endPin):
@@ -48,10 +49,13 @@ class HVSW_Driver_base():
         self.startPin = startPin
         self.endPin = endPin
 
+    def getPinRange(self) -> list:
+        return (self.startPin, self.endPin)
+
     def isPinInRange(self, pin) -> bool:
         return (pin >= self.startPin) and (pin <= self.endPin):
 
-    def initBoard(self) -> bool:
+    def init(self) -> bool:
         return False
     
     def _checkPin(self, pin) -> int
@@ -59,8 +63,15 @@ class HVSW_Driver_base():
             return pin -self.startPin
         return -1
     
-    def setPin(self, pin) -> int:
+    def setPin(self, pin, val) -> int:
         return self._checkPin(pin)
 
     def getPin(self, pin) -> int:
         return self._checkPin(pin)
+
+    def pulsePin(self, pin, onTime=1.0) -> None:
+        """Pulse the the specific pin# on the Electrode-Driver-Stack of onTime (sec)"""
+        if self._checkPin(pin):
+            self.setPin(pin, 1)
+            time.sleep(onTime)
+            self.setPin(pin, 0)
