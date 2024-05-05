@@ -32,17 +32,24 @@ __status__ = "Production"
 from GSOF_ArduBridge import HVSW_Driver_base as BASE
 from GSOF_ArduBridge import pca9505_class as GPIO_IC
 
-class HVSW_Driver(BASE):
-    def __init__(self, comm=False, devID=0x00, startPin, endPin, v=False):
+class HVSW_Driver(BASE.HVSW_Driver_base):
+    def __init__(self, comm=False, devID=0, startPin=0, endPin=39, v=False):
         super().__init__(startPin, endPin)
+        devID += GPIO_IC.PCA9505.devID
         self.ID = "HVSW_Driver-V2 ID 0x%02x"%(devID)
         self.v = v
         self.comm = comm
-        self.dev = GPIO_IC.PCA9505_class(comm=comm, devID=devID, v=v)
+        self.dev = GPIO_IC.PCA9505(comm=comm, devID=devID, v=v)
 
-    def initBoard(self):
-        dev.clearAllPins()
-        dev.setAllPinsToOutput()
+    def init(self, v=None):
+        if v == None:
+            v = self.v
+        self.dev.v = v
+        self.dev.clearAllPins()
+        self.dev.setAllPinsToOutput()
+
+    def getDevID(self):
+        return self.dev.devID
 
     def setPin(self, pin, val):
         """Set the state of the specific pin#"""

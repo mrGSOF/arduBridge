@@ -19,16 +19,6 @@
 """
 The PCA9505 is an comm General Purpose Input/Output (GPIO) device.
 The class includes methods to control it over the comm bus.
-The __init__ method initializes the class with a reference to an comm object and the
-device ID of the external GPIO device. It also has some class variables for storing the
-comm register addresses for various functions of the device, such as reading/writing to the device ports.
-The class has several methods for interacting with the external GPIO device.
-The modeSet and modeGet methods are present for software competability with the MAX3700 class.
-The bankModeSet and bankModeGet methods can be used to set and get the direction
-(input or output) of the individual pins on the device. The portWrite and portRead methods
-can be used to write values to and read values from the device ports, respectively.
-The pinMode and pinRead methods can be used to set the direction and read the value
-of an individual pin, respectively.
 """
 
 __version__ = "1.0.0"
@@ -41,9 +31,10 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 from GSOF_ArduBridge import CON_prn
-from GSOF_ArduBridge import ExtGpio_base as BASE
+from GSOF_ArduBridge import ExtGpio_base as GPIO
 
-class PCA9505(BASE):
+class PCA9505(GPIO.ExtGpio_base):
+    devID = 0x20
     maxPorts = 5 #< But only 5 are used
     maxPins  = 40
     pinsPerPort = 8
@@ -65,10 +56,10 @@ class PCA9505(BASE):
         self.devID = devID
         self.portOut = [0]*self.maxPorts
 
-    def _getRegisters(self, reg, N):
+    def _readRegister(self, reg, N):
         return self.comm.readRegister(self.devID, self.AUTO_INC|reg, N)
 
-    def _setRegisters(self, reg, vals):
+    def _writeRegister(self, reg, vals):
         return self.comm.writeRegister(self.devID, self.AUTO_INC|reg, vals)
         
 ### Device level API
@@ -77,7 +68,7 @@ class PCA9505(BASE):
             self.setPort(port, 0x00)
 
     def setAllPinsToOutput(self) -> int:
-        return self.setPortMode(port=0, val=[self.OUTPUT]*self.maxPins/self.pinsPerPort)
+        return self.setPortMode(port=0, val=[self.OUTPUT]*self._maxPorts())
 
     def getAllPinsModes(self) -> list:
         self.getMode()
@@ -90,14 +81,14 @@ class PCA9505(BASE):
         N = len(val)
         if (port+N) > self.maxPorts:
             N = self.maxPorts-port
-        reply = self._setRegisters(self.IOC_base+port, val[0:N])
+        reply = self._writeRegister(self.IOC_base+port, val[0:N])
         CON_prn.printf( '%s: port direction Set: %s', par=(self.ID, str(self.RES[reply[0]])) )
         return reply
 
     def getPortMode(self, port=0, N=1) -> list:
         if (port+N) > self.maxPorts:
             N = self.maxPorts-port
-        reply = self._getRegisters(self.IOC_base+port, N)
+        reply = self._readRegister(self.IOC_base+port, N)
         CON_prn.printf( '%s: port direction: %s {bit: 0-%s}', par=(self.ID, str(reply), self.MODE[0]) )
         return reply
 
@@ -107,7 +98,7 @@ class PCA9505(BASE):
             val &= 0xff
             self.portOut[port] = val
             portReg = self.OP_base +port
-            reply = self._setRegisters(portReg, [val])
+            reply = self._writeRegister(portReg, [val])
             CON_prn.printf('%s: POPT%d <-- %d %s', par=(self.ID, port, val, self.RES[reply[0]]), v=self.v)
             return reply[0]
         return -1
@@ -115,7 +106,7 @@ class PCA9505(BASE):
     def getPort(self, port):
         """Read the state of the specific port#"""
         portReg = self.IP_base +port
-        reply = self._getRegisters(portReg, 1)
+        reply = self._readRegister(portReg, 1)
         if reply != -1:
             CON_prn.printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
             return reply[0]
@@ -131,7 +122,7 @@ class PCA9505(BASE):
         return reply
 
     def _setPin(self, pin, val) -> int:
-        _pin, port, mask = BASE.pinPortMask(pin)
+        _pin, port, mask = GPIO.pinPortMask(pin)
         pVal = self.portOut[port]
         if (val != 0):
             pVal |= mask        #< Set bit
@@ -158,13 +149,13 @@ class PCA9505(BASE):
             
         result = []
         for pin in pinList:
-            _pin, _port, _mask = BASE.pinPortMask(pin)
+            _pin, _port, _mask = GPIO.pinPortMask(pin)
             reply = self.getPort(_port)
             val = "Error"
             if reply != -1:
-                reply = str((reply>>_pin)&1)
+                reply = (reply>>_pin)&1
             result.append(reply)
-            CON_prn.printf('%s: <%d> (PORT%d<%d>) = %s', par=(self.ID, pin, _port, _pin, reply), v=self.v)
+            CON_prn.printf('%s: <%d> (PORT%d<%d>) = %d', par=(self.ID, pin, _port, _pin, reply), v=self.v)
         return result
 
 if __name__ == "__main__":

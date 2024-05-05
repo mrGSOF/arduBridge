@@ -32,19 +32,26 @@ __status__ = "Production"
 from GSOF_ArduBridge import HVSW_Driver_base as BASE
 from GSOF_ArduBridge import max3700_class as GPIO_IC
 
-class HVSW_Driver(BASE):
-    def __init__(self, comm=False, devID=0x00, startPin, endPin, v=False):
+class HVSW_Driver(BASE.HVSW_Driver_base):
+    def __init__(self, comm=False, devID=0, startPin=0, endPin=39, v=False):
         super().__init__(startPin, endPin)
+        devID += GPIO_IC.MAX3700AAI.devID
         self.ID = "HVSW_Driver-V1 ID 0x%02x,0x%02x"%(devID+0, devID+1)
         self.v = v
         self.comm = comm
         self.devs = [GPIO_IC.MAX3700AAI(comm=comm, devID=devID+0, v=v),
                      GPIO_IC.MAX3700AAI(comm=comm, devID=devID+1, v=v)]
 
-    def initBoard(self):
+    def init(self, v=None):
         for dev in self.devs:
+            if v == None:
+                v = self.v
+            dev.v = v
             dev.clearAllPins()
             dev.setAllPinsToOutput()
+
+    def getDevID(self):
+        return (self.devs[0].devID, self.devs[1].devID)
             
 ### Pin level API
 ##    def _setPinMode(self, pin, mode):
@@ -60,11 +67,11 @@ class HVSW_Driver(BASE):
         """Set the state of the specific pin#"""
         pin = super().setPin(pin)
         if pin >= 0:
-            if pin < devs[0].maxPins:
-                dev = dev[0]
+            if pin < self.devs[0].maxPins:
+                dev = self.devs[0]
             else:
-                dev = dev[1]
-                pin -= devs[0].maxPins
+                dev = self.devs[1]
+                pin -= self.devs[0].maxPins
             return dev.setPin(pin, val)
         return -1
 
@@ -72,10 +79,10 @@ class HVSW_Driver(BASE):
         """Read the state of the specific pin#"""
         pin = super().setPin(pin)
         if pin >= 0:
-            if pin < devs[0].maxPins:
-                dev = dev[0]
+            if pin < self.devs[0].maxPins:
+                dev = self.devs[0]
             else:
-                dev = dev[1]
-                pin -= devs[0].maxPins
+                dev = self.devs[1]
+                pin -= self.devs[0].maxPins
             return dev.getPin(pin)
         return -1

@@ -17,18 +17,6 @@
 """
 
 """
-The __init__ method initializes the class with a reference to an I2C object and the
-device ID of the external GPIO device. It also has some class variables for storing the
-I2C register addresses for various functions of the device, such as setting the device
-mode or reading/writing to the device ports.
-The class has several methods for interacting with the external GPIO device.
-The modeSet method can be used to set the operating mode of the device, either "normal" or "shutdown".
-The modeGet method can be used to read the current operating mode of the device.
-The bankModeSet and bankModeGet methods can be used to set and get the direction
-(input or output) of the individual pins on the device. The portWrite and portRead methods
-can be used to write values to and read values from the device ports, respectively.
-The pinMode and pinRead methods can be used to set the direction and read the value
-of an individual pin, respectively.
 """
 
 __version__ = "1.0.0"
@@ -46,9 +34,10 @@ def pinPortMask(pin, pinsInPort=8):
     mask  = int(1<<pin)
     return (pin, port, mask)
 
-class ExtGPIO_base():
+class ExtGpio_base():
     maxPorts = 0
     maxPins = 0
+    pinsPerPort = 8
     OUTPUT = 0
     INPUT  = 1
     RES = {1:'OK', 0:'ERR', -1:'ERR'}
@@ -58,6 +47,9 @@ class ExtGPIO_base():
         self.v = v
         self.comm = comm
         self.devID = devID
+
+    def _maxPorts(self) -> int:
+        return int(self.maxPins/self.pinsPerPort +0.5)
 
 ### Device level API
     def setMode(self, mode=0) -> int:

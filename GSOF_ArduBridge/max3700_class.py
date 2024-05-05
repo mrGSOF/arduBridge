@@ -43,9 +43,10 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 from GSOF_ArduBridge import CON_prn
-from GSOF_ArduBridge import ExtGpio_base as BASE
+from GSOF_ArduBridge import ExtGpio_base as GPIO
 
-class Max3700AAX(BASE):
+class MAX3700AAX(GPIO.ExtGpio_base):
+    devID = 0x40
     maxPorts = 7
     maxPins = 28
     pinsPerPort = 8
@@ -60,18 +61,18 @@ class Max3700AAX(BASE):
     MODE = {0:'Shutdown', 1:'Normal'}
     tDet = {0:'Disable', 1:'Enable'}
 
-    def __init__(self, comm=False, devID=0x00, v=False):
+    def __init__(self, comm=False, devID=0x40, v=False):
         self.ID = 'MAX3700AAX-ID 0x%02x'%(devID)
         self.v = v
         self.comm = comm
         self.devID = devID
 
-    def _getRegisters(self, reg, N):
+    def _readRegister(self, reg, N):
         return self.comm.readRegister(self.devID, reg, N)
 
-    def _setRegisters(self, reg, vals):
+    def _writeRegister(self, reg, vals):
         return self.comm.writeRegister(self.devID, reg, vals)
-
+    
 ### Device level API
     def setMode(self, mode=1, transitionDetection=0) -> list:
         """mode: 0 - Shutdown; 1 - Normal operation. transitionDetection: 0 - Disable; 1 - Enable"""
@@ -79,7 +80,7 @@ class Max3700AAX(BASE):
             mode = 1
         val = mode
         val |= (transitionDetection&0x1)<<7
-        reply = self._writeRegisters(self.configReg, [mode])
+        reply = self._writeRegister(self.configReg, [mode])
         if self.v:
             CON_prn.printf('%s: MODE-Set: %s',
                            par=(self.ID, self.RES[reply[0]]),
@@ -88,7 +89,7 @@ class Max3700AAX(BASE):
 
     def getMode(self) -> list:
         """"""
-        reply = self._readRegisters(self.configReg, 1)
+        reply = self._readRegister(self.configReg, 1)
         if self.v:
             if reply != -1:
                 mode = reply[0]&1
@@ -99,12 +100,12 @@ class Max3700AAX(BASE):
         return reply
 
     def clearAllPins(self) -> None:
-        for port in range(0,self.maxPins/8):
+        for port in range(0, self._maxPorts()):
             self.setPort(port, 0x00)
 
     def setAllPinsToOutput(self) -> int:
         self.setMode(mode=1)
-        return self.setPortMode(port=0, val=[self.OUTPUT]*self.maxPins/self.pinsPerPort)
+        return self.setPortMode(port=0, val=[self.OUTPUT]*self._maxPorts())
 
     def getAllPinsModes(self) -> list:
         self.getMode()
@@ -185,7 +186,7 @@ class Max3700AAX(BASE):
                 result.append(-1)
         return result
 
-class Max3700AAI(Max3700AAX):
+class MAX3700AAI(MAX3700AAX):
     maxPorts = 5
     maxPins = 20
     configReg    = 0x04

@@ -17,18 +17,6 @@
 """
 
 """
-The __init__ method initializes the class with a reference to an I2C object and the
-device ID of the external GPIO device. It also has some class variables for storing the
-I2C register addresses for various functions of the device, such as setting the device
-mode or reading/writing to the device ports.
-The class has several methods for interacting with the external GPIO device.
-The modeSet method can be used to set the operating mode of the device, either "normal" or "shutdown".
-The modeGet method can be used to read the current operating mode of the device.
-The bankModeSet and bankModeGet methods can be used to set and get the direction
-(input or output) of the individual pins on the device. The portWrite and portRead methods
-can be used to write values to and read values from the device ports, respectively.
-The pinMode and pinRead methods can be used to set the direction and read the value
-of an individual pin, respectively.
 """
 
 __version__ = "1.0.0"
@@ -45,7 +33,7 @@ class HVSW_Driver_base():
     def __init__(self, startPin, endPin):
         self.assignPinRange(startPin, endPin)
         
-    def assignPinRange(startPin, endPin):
+    def assignPinRange(self, startPin, endPin):
         self.startPin = startPin
         self.endPin = endPin
 
@@ -53,17 +41,17 @@ class HVSW_Driver_base():
         return (self.startPin, self.endPin)
 
     def isPinInRange(self, pin) -> bool:
-        return (pin >= self.startPin) and (pin <= self.endPin):
+        return (pin >= self.startPin) and (pin <= self.endPin)
 
-    def init(self) -> bool:
+    def init(self, v=None) -> bool:
         return False
     
-    def _checkPin(self, pin) -> int
+    def _checkPin(self, pin) -> int:
         if self.isPinInRange(pin):
             return pin -self.startPin
         return -1
     
-    def setPin(self, pin, val) -> int:
+    def setPin(self, pin, val=0) -> int:
         return self._checkPin(pin)
 
     def getPin(self, pin) -> int:
