@@ -54,9 +54,12 @@ if __name__ == "__main__":
     print("Using port %s at %d"%(port, baudRate))
     ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate )
     if ONLINE:
-        ardu.OpenClosePort(1)
-        ardu.i2c.setFreq(400000)
         print("Connecting to Arduino ON-LINE.")
+        if ardu.OpenClosePort(1, retry=10) == 0:
+            print("Arduino OFF-LINE. Simulation mode")
+            ONLINE = False
+        else:
+            ardu.i2c.setFreq(400000)
     else:
         print("Arduino OFF-LINE. Simulation mode")
 
@@ -68,11 +71,13 @@ if __name__ == "__main__":
         #DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=6, startPin=120, endPin=159),
         DRV_V2.HVSW_Driver(comm=ardu.i2c, devID=0, startPin=160, endPin=199),
         ]
+    
     if STACK_BUILD != []:
         ExtGpio = HVSW_Stack.HVSW_Stack(stack=STACK_BUILD, v=True)#True)
-        ExtGpio.init()
-        ardu.ExtGpio = ExtGpio
-        ardu.Reset()
+        if ONLINE:
+            ExtGpio.init()
+            ardu.ExtGpio = ExtGpio
+            ardu.Reset()
         print("External GPIO Ready\n")
     else:
         print("External GPIO skipped\n")

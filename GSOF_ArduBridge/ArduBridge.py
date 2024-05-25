@@ -58,18 +58,22 @@ class ArduBridge():
         self.spi  = ArduSPI.ArduBridgeSPI( bridge=self.comm )#, v=True )
         self.cap  = CAP.ArduBridgePnS( bridge=self.comm )#, v=True )
 
-    def OpenClosePort(self, val):
-        """Open (1) or close (0) the serial port connection to the Arduino"""
+    def OpenClosePort(self, val, retry=-1):
+        """
+        Open (1, retry=6) or close (0) the serial port connection to the Arduino.
+        retry = -1 will try to open the port indefinitely attempts.
+        """
         if type(val) == str:
             if val == 'open':
                 val = 1
             else:
                 val = 0
         self.comm.OpenClosePort(val)
-        retry = 6
         if val != 0:
-            while (self.GetID() == False) and (retry > 0):
+            while (self.GetID() == False) and (retry != 0):
                 time.sleep(0.5)
+                if retry > 0:
+                    retry -= 1
         return retry
 
     def Reset(self):
