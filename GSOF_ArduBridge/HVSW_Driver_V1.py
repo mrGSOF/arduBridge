@@ -30,19 +30,38 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 from GSOF_ArduBridge import HVSW_Driver_base as BASE
-from GSOF_ArduBridge import max3700_class as GPIO_IC
+from GSOF_ArduBridge import max7300_class as GPIO_IC
 
 class HVSW_Driver(BASE.HVSW_Driver_base):
     def __init__(self, comm=False, devID=[0,1], startPin=0, endPin=39, v=False):
         super().__init__(startPin, endPin)
-        devID += GPIO_IC.MAX3700AAI.devID
-        self.ID = "HVSW_Driver-V1 ID 0x%02x,0x%02x"%(devID+0, devID+1)
+        devID[0] += GPIO_IC.MAX7300AAI.devID
+        devID[1] += GPIO_IC.MAX7300AAI.devID
+        self.ID = "HVSW_Driver-V1 ID 0x%02x,0x%02x"%(devID[0], devID[1])
         self.v = v
         self.comm = comm
-        self.devs = [GPIO_IC.MAX3700AAI(comm=comm, devID=devID[0], v=v),
-                     GPIO_IC.MAX3700AAI(comm=comm, devID=devID[1], v=v)]
+        self.devs = [GPIO_IC.MAX7300AAI(comm=comm, devID=devID[0], v=v),
+                     GPIO_IC.MAX7300AAI(comm=comm, devID=devID[1], v=v)]
 
     def init(self, v=None):
+        """
+        def init(self):
+            self.ExtGpio = []
+            for dev in self.devList:
+                print('\nConfiguring port-extenderID 0x%02x'%(dev))
+                if self.i2c:
+                    self.ExtGpio.append( Max3700ExtGPIO.Max3700ExtGPIO( i2c=self.i2c, devID=dev, v=self.v ) )
+                    self.ExtGpio[-1].modeSet(mode=1)             #< Activating the MAX3700
+                    self.ExtGpio[-1].modeGet()                   #< Readback the MAX3700 mode
+                    self.ExtGpio[-1].bankModeGet()
+                    self.ExtGpio[-1].bankModeSet(0x55, B=0, N=7) #< Setting all of its ports to output
+                    self.ExtGpio[-1].bankModeGet()               #< Reading back the written data
+                    for pin in [0,8,16,24]:
+                        self.ExtGpio[-1].portWrite(pin, 0x00)    #< Simultaniously write 0 to 8 pins
+
+                else:
+                    print('No I2C object...')
+        """
         for dev in self.devs:
             if v == None:
                 v = self.v

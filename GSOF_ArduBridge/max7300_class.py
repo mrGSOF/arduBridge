@@ -17,7 +17,7 @@
 """
 
 """
-The Max3700 is an comm General Purpose Input/Output (GPIO) device.
+The Max7300 is an comm General Purpose Input/Output (GPIO) device.
 The class includes methods to control it over the comm bus.
 The __init__ method initializes the class with a reference to an comm object and the
 device ID of the external GPIO device. It also has some class variables for storing the
@@ -45,7 +45,7 @@ __status__ = "Production"
 from GSOF_ArduBridge import CON_prn
 from GSOF_ArduBridge import ExtGpio_base as GPIO
 
-class MAX3700AAX(GPIO.ExtGpio_base):
+class MAX7300AAX(GPIO.ExtGpio_base):
     devID = 0x40
     maxPorts = 7
     maxPins = 28
@@ -62,7 +62,7 @@ class MAX3700AAX(GPIO.ExtGpio_base):
     tDet = {0:'Disable', 1:'Enable'}
 
     def __init__(self, comm=False, devID=0x40, v=False):
-        self.ID = 'MAX3700AAX-ID 0x%02x'%(devID)
+        self.ID = 'MAX7300AAX-ID 0x%02x'%(devID)
         self.v = v
         self.comm = comm
         self.devID = devID
@@ -132,7 +132,7 @@ class MAX3700AAX(GPIO.ExtGpio_base):
  
     def setPort(self, port, val):
         """Set the state of the specific port#"""
-        portReg = self.portBase +port
+        portReg = self.portBase +port*self.pinsPerPort
         reply = self._writeRegister(portReg, [val&0xff])
         if self.v:
             CON_prn.printf('%s: POPT%d-Set: %s', par=(self.ID, port, self.RES[reply[0]]), v=True)
@@ -140,7 +140,7 @@ class MAX3700AAX(GPIO.ExtGpio_base):
 
     def getPort(self, port):
         """Read the state of the specific port#"""
-        portReg = self.portBase +port
+        portReg = self.portBase +port*self.pinsPerPort
         reply = self._readRegister(portBaseReg, 1)
         if reply != -1:
             CON_prn.printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
@@ -186,7 +186,7 @@ class MAX3700AAX(GPIO.ExtGpio_base):
                 result.append(-1)
         return result
 
-class MAX3700AAI(MAX3700AAX):
+class MAX7300AAI(MAX7300AAX):
     maxPorts = 5
     maxPins = 20
     configReg    = 0x04
@@ -196,4 +196,4 @@ class MAX3700AAI(MAX3700AAX):
 
     def __init__(self, comm=False, devID=0x00, v=False):
         super().__init__(comm, devID, v)
-        self.ID = 'MAX3700AAI-ID 0x%02x'%(devID)
+        self.ID = 'MAX7300AAI-ID 0x%02x'%(devID)

@@ -15,7 +15,7 @@ from GSOF_ArduBridge import ArduBridge                   #< The communication st
 from GSOF_ArduBridge import ArduBridge_HW                #< ArduShield class
 from GSOF_ArduBridge import ElectrodeGpioStack           #< Stack of multiple electrode-driver boards
 from GSOF_ArduBridge import pca9505_class as PCA9505     #< PCA9505 port extender
-from GSOF_ArduBridge import max3700_class as MAX3700     #< MAX3700 port extender 
+from GSOF_ArduBridge import max7300_class as MAX7300     #< MAX7300 port extender 
 from GSOF_ArduBridge import threadPID_HW11 as threadPID  #< Closed loop controller for temperature control
 from GSOF_ArduBridge import UDP_Send                     #< Send telemetry over UDP
 
@@ -39,17 +39,17 @@ if __name__ == "__main__":
     PID2 = False                 #< True / False to build a PID controller
     ELEC_EN = True #False        #< True to enable the real electrodes, False for simulation only
     STACK_BUILD = [
-        MAX3700.Max3700ExtGPIO(devID=0x40), #1 Top
-        MAX3700.Max3700ExtGPIO(devID=0x41), #1 Bottom
+        MAX7300.Max7300ExtGPIO(devID=0x40), #1 Top
+        MAX7300.Max7300ExtGPIO(devID=0x41), #1 Bottom
 
-        MAX3700.Max3700ExtGPIO(devID=0x42), #2 Top
-        MAX3700.Max3700ExtGPIO(devID=0x43), #2 Bottom
+        MAX7300.Max7300ExtGPIO(devID=0x42), #2 Top
+        MAX7300.Max7300ExtGPIO(devID=0x43), #2 Bottom
 
-        MAX3700.Max3700ExtGPIO(devID=0x44), #3 Top
-        MAX3700.Max3700ExtGPIO(devID=0x45), #3 Bottom
+        MAX7300.Max7300ExtGPIO(devID=0x44), #3 Top
+        MAX7300.Max7300ExtGPIO(devID=0x45), #3 Bottom
 
-        #MAX3700.Max3700ExtGPIO(devID=0x46), #4 Top
-        #MAX3700.Max3700ExtGPIO(devID=0x47), #4 Bottom
+        #MAX7300.Max7300ExtGPIO(devID=0x46), #4 Top
+        #MAX7300.Max7300ExtGPIO(devID=0x47), #4 Bottom
         ]
 
     PORT_BASE = 8000 #7000                       #< Port to send status packets
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     
     ExtGpio = []
     if STACK_BUILD != []:
-        ardu.i2c.setFreq(400000) #< MAX3700 maximum clock rate
+        ardu.i2c.setFreq(400000) #< MAX7300 maximum clock rate
         ExtGpio = ElectrodeGpioStack.ExtGpioStack(i2c=ardu.i2c, extGpioStack=STACK_BUILD, v=False)#True)
         ExtGpio.init()
         ExtGpio.init()
