@@ -5,7 +5,7 @@ To customize the environment to your needs. You will need to change
 he parameters in the "PARAMETER BLOCK" in the __main__ section
 
 By: Guy Soffer
-Date: 19/Feb/2024
+Date: 26/May/2024
 """
 
 #Basic modules to load
@@ -13,7 +13,6 @@ import time
 from GSOF_ArduBridge import udpControl                   #< To control the movement of droplets by UDP commands
 from GSOF_ArduBridge import ArduBridge                   #< The communication stack
 from GSOF_ArduBridge import ArduBridge_HW                #< ArduShield class
-#from GSOF_ArduBridge import pca9505_class as PCA9505     #< 
 from GSOF_ArduBridge import HVSW_Stack                   #< Stack of multiple High-Voltage-Switch boards
 from GSOF_ArduBridge import HVSW_Driver_V1 as DRV_V1     #<
 from GSOF_ArduBridge import HVSW_Driver_V2 as DRV_V2     #< 
@@ -65,10 +64,10 @@ if __name__ == "__main__":
 
     ExtGpio = []
     STACK_BUILD = [
-        DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=0, startPin=  0, endPin= 39),
-        DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=2, startPin= 40, endPin= 79),
-        DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=4, startPin= 80, endPin=119),
-        #DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=6, startPin=120, endPin=159),
+        DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=[0,1], startPin=  0, endPin= 39),
+        DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=[2,3], startPin= 40, endPin= 79),
+        DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=[4,5], startPin= 80, endPin=119),
+        #DRV_V1.HVSW_Driver(comm=ardu.i2c, devID=[6,7], startPin=120, endPin=159),
         DRV_V2.HVSW_Driver(comm=ardu.i2c, devID=0, startPin=160, endPin=199),
         ]
     
@@ -116,11 +115,12 @@ if __name__ == "__main__":
     setup = protocol.Setup(ExtGpio=ExtGpio, gpio=ardu.gpio, chipViewer=udpSendChip.Send)
     setup.enOut(ELEC_EN)
 
-#    ardu.i2c.setFreq(200000)
-#    pca = PCA9505.PCA9505(ardu.i2c, devID=32) #< ID 32 to 39
-#    pca.getPortMode(0,5)
-#    pca.getPortMode(0,5)
-#    for i in [0,1,2,3,4]:
-#        pca.setPortMode(port=i, val=0)
+##    from GSOF_ArduBridge import pca9505_class as PCA9505
+##    ardu.i2c.setFreq(200000)
+##    pca = PCA9505.PCA9505(ardu.i2c, devID=32) #< ID 32 to 39
+##    pca.getPortMode(0,5)
+##    pca.getPortMode(0,5)
+##    for i in [0,1,2,3,4]:
+##        pca.setPortMode(port=i, val=0)
 
     

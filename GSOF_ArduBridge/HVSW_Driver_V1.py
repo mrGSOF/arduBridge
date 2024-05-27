@@ -33,14 +33,14 @@ from GSOF_ArduBridge import HVSW_Driver_base as BASE
 from GSOF_ArduBridge import max3700_class as GPIO_IC
 
 class HVSW_Driver(BASE.HVSW_Driver_base):
-    def __init__(self, comm=False, devID=0, startPin=0, endPin=39, v=False):
+    def __init__(self, comm=False, devID=[0,1], startPin=0, endPin=39, v=False):
         super().__init__(startPin, endPin)
         devID += GPIO_IC.MAX3700AAI.devID
         self.ID = "HVSW_Driver-V1 ID 0x%02x,0x%02x"%(devID+0, devID+1)
         self.v = v
         self.comm = comm
-        self.devs = [GPIO_IC.MAX3700AAI(comm=comm, devID=devID+0, v=v),
-                     GPIO_IC.MAX3700AAI(comm=comm, devID=devID+1, v=v)]
+        self.devs = [GPIO_IC.MAX3700AAI(comm=comm, devID=devID[0], v=v),
+                     GPIO_IC.MAX3700AAI(comm=comm, devID=devID[1], v=v)]
 
     def init(self, v=None):
         for dev in self.devs:
