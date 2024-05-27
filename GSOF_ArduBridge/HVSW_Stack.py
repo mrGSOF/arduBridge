@@ -52,6 +52,9 @@ class HVSW_Stack(BASE.ExtGpio_base):
                 return board
         return None
 
+    def pinWrite(self, pin, valList) -> int:
+        return self.setPin(pin, valList)
+
     def setPin(self, pin, valList) -> int:
         if type(valList) == int:
             valList = [valList]
