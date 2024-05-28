@@ -100,12 +100,12 @@ class MAX7300AAX(GPIO.ExtGpio_base):
         return reply
 
     def clearAllPins(self) -> None:
-        for port in range(0, self._maxPorts()):
+        for port in range(0, self._maxPorts() +1):
             self.setPort(port, 0x00)
 
     def setAllPinsToOutput(self) -> int:
         self.setMode(mode=1)
-        return self.setPortMode(port=0, val=[self.OUTPUT]*self._maxPorts())
+        return self.setPortMode(port=0, val=[self.OUTPUT]*self.maxPorts)
 
     def getAllPinsModes(self) -> list:
         self.getMode()
