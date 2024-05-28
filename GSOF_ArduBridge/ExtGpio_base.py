@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
     This file is part of GSOF_ArduBridge.
 
@@ -17,6 +16,7 @@
 """
 
 """
+Base class for port extender peripheral.
 """
 
 __version__ = "1.0.0"
