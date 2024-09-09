@@ -57,8 +57,8 @@ if __name__ == "__main__":
     #/\/\/\   PARAMETERS BLOCK END  /\/\/\
     
     print('Using port %s at %d'%(port, baudRate))
-    ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate ) #< The GSOF_arduBridge core object
-    ards = ArduBridge_HW.ArduBridge_Shield(ardu)            #< The GSOF_arduBridge HW shield object
+    ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate, logLevel=logging.INFO ) #< The GSOF_arduBridge core object
+    ards = ArduBridge_HW.ArduBridge_Shield(ardu)                                   #< The GSOF_arduBridge HW shield object
     
     print('Discovering ArduBridge on port %s'%(port))
     if ardu.OpenClosePort(1):

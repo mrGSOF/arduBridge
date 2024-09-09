@@ -41,9 +41,6 @@ from GSOF_ArduBridge import ArduI2C
 from GSOF_ArduBridge import ArduSPI
 from GSOF_ArduBridge import ArduPulseAndSample as CAP
 
-
-
-
 class ArduBridge():
     def __init__(self, COM='COM9', baud=115200*2, logger=None, logLevel=logging.INFO, fileHandler=False, consoleHandler=True):
 
@@ -78,7 +75,7 @@ class ArduBridge():
             logger.addHandler(fh)
         return logger
 
-    def OpenClosePort(self, val, retry=-1):
+    def OpenClosePort(self, val, retry=6):
         """
         Open (1, retry=6) or close (0) the serial port connection to the Arduino.
         retry = -1 will try to open the port indefinitely attempts.
@@ -91,9 +88,15 @@ class ArduBridge():
         self.comm.OpenClosePort(val)
         if val != 0:
             while (self.GetID() == False) and (retry != 0):
+                self.logger.debug("Open port retry# {retry}")
                 time.sleep(0.5)
                 if retry > 0:
                     retry -= 1
+            arduRespond = self.GetID()
+            if arduRespond == False:
+                self.logger.critical(f"Failed to connect to arduBridge on device {self.COM}")
+            else:
+                self.logger.info(f"Connected to arduBride with response {arduRespond}")
         return retry
 
     def Reset(self):

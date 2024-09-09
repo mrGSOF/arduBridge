@@ -59,7 +59,7 @@ class ArduBridgeComm():
         self.semaRX = threading.Semaphore(1)
         self.ser = serial.Serial(None,
                                  baud,
-                                 timeout=self.RxTimeOut,
+                                 timeout=RxTimeOut,
                                  writeTimeout=writeTimeout,
                                  inter_byte_timeout=interByteTimeout
                                  )

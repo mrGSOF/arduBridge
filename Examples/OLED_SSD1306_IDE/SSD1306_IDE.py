@@ -32,7 +32,7 @@ if __name__ == "__main__":
     #/\/\/\   PARAMETERS BLOCK END  /\/\/\
     
     print('Using port %s at %d'%(port, baudRate))
-    ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate )
+    ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate, logLevel=logging.INFO )
     
     # 128x32 display with hardware I2C:
     disp = SSD1306_class.SSD1306_128_64(rst=None, i2c=ardu.i2c)

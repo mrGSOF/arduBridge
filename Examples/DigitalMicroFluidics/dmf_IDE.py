@@ -51,7 +51,7 @@ if __name__ == "__main__":
         udpConsol = udpControl.udpControl(nameID="udpIDLE", RxPort=REMOTE_CTRL_PORT, callFunc=extEval)
         print("Remote-Consol-Active on port %s\n"%(str(REMOTE_CTRL_PORT)))
     print("Using port %s at %d"%(port, baudRate))
-    ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate )
+    ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate, logLevel=logging.INFO )
     if ONLINE:
         print("Connecting to Arduino ON-LINE.")
         if ardu.OpenClosePort(1, retry=10) == 0:

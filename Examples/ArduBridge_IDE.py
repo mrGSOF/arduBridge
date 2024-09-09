@@ -30,7 +30,7 @@ if __name__ == "__main__":
     #/\/\/\   PARAMETERS BLOCK END  /\/\/\
     
     print('Using port %s at %d'%(port, baudRate))
-    ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate )
+    ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate, logLevel=logging.INFO )
     ards = ArduBridge_HW.ArduBridge_Shield( ardu, an_ref=3.3 )
 
     print('Discovering ArduBridge on port %s'%(port))
