@@ -1,5 +1,5 @@
 # Introduction
-The ArduBridge (GSOF_ArduBridge) is a software package designed to be a bridge between Python and an Arduino.
+The ArduBridge (GSOF_ArduBridge) is a Python software package designed to bridge between a host computer (e.g: PC or RPI) and an Arduino.
 The ArduShield (GSOF_ArduShield) is an expansion board for the Arduino Uno R3 that adds additional features and connectors to attach devices such as servos, DC motors, analog sensors, high-power actuators, etc.
 The main computer runs the Python script and the ArduBridge sends the commands to the Arduino over USB(RS232). This provides a convinient way to develop real-time algorithms on the main computer and use of the sensors and actuators via the Arduino. In addition, the electronic hardware can be used without the ArduBridge software by programming the Arduino directly in C/C++.
 
