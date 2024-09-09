@@ -32,12 +32,10 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-from GSOF_ArduBridge import BridgeSerial
-from GSOF_ArduBridge import CON_prn
 
 class ArduBridgeAn():
-    def __init__(self, bridge=False, v=False):
-        self.v = v
+    def __init__(self, bridge=False, logger=None):
+        self.logger = logger
         self.comm = bridge
 
     def analogWrite(self, pin, val):
@@ -48,11 +46,11 @@ class ArduBridgeAn():
             vDat = [ord('P'), pin, val]
             self.comm.send(vDat)
         reply = self.comm.receive(1)
-        if self.v:
+        if self.logger != None:
             RES = 'OK'
             if reply[0] == -1:
                 RES = 'ERR'
-            CON_prn.printf('PWM%d: %d - %s', par=(pin, val, RES), v=True)
+            self.logger.debug(f"PWM{pin}: {val} - {RES}")
         return reply[0]
 
     def analogRead(self, pin):
@@ -62,7 +60,10 @@ class ArduBridgeAn():
         reply = self.comm.receive(2)
         if reply[0] != -1:
             val = (reply[1][0] +(reply[1][1])*256)
-            CON_prn.printf('AN%d: %d', par=(pin, val), v=self.v)
+            if self.logger != None:
+                self.logger.debug(f"AN{pin}: {val}")
             return val
-        CON_prn.printf('AN%d: Error', par=(pin), v=self.v)
+        if self.logger != None:
+            self.logger.error(f"AN{pin}: Error")
+
         return -1

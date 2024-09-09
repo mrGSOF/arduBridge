@@ -33,6 +33,7 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 import sys, time
+import logging
 from GSOF_ArduBridge import BridgeSerial
 from GSOF_ArduBridge import ArduAnalog
 from GSOF_ArduBridge import ArduGPIO
@@ -44,18 +45,38 @@ from GSOF_ArduBridge import ArduPulseAndSample as CAP
 
 
 class ArduBridge():
-    def __init__(self, COM='COM9', baud=115200*2):
+    def __init__(self, COM='COM9', baud=115200*2, logger=None, logLevel=logging.INFO, fileHandler=False, consoleHandler=True):
 
         version = 'v1.1 running on Python %s'%(sys.version[0:5])
-        print('GSOF_ArduBridge %s'%(version))
+        self.logger = logger
+        if self.logger == None:
+            self.logger = self._initLogger(logLevel=logLevel, fileHandler=fileHandler, consoleHandler=consoleHandler)
+        self.logger.info('GSOF_ArduBridge %s'%(version))
         self.ExtGpio = [0,0]
         self.COM  = COM
-        self.comm = BridgeSerial.ArduBridgeComm( COM=COM, baud=baud )
-        self.gpio = ArduGPIO.ArduBridgeGPIO( bridge=self.comm )
-        self.an   = ArduAnalog.ArduBridgeAn(bridge=self.comm )
-        self.i2c  = ArduI2C.ArduBridgeI2C( bridge=self.comm )#, v=True )
-        self.spi  = ArduSPI.ArduBridgeSPI( bridge=self.comm )#, v=True )
-        self.cap  = CAP.ArduBridgePnS( bridge=self.comm )#, v=True )
+        self.comm = BridgeSerial.ArduBridgeComm( COM=COM, baud=baud, logger=self.logger )
+        self.gpio = ArduGPIO.ArduBridgeGPIO( bridge=self.comm, logger=self.logger )
+        self.an   = ArduAnalog.ArduBridgeAn(bridge=self.comm, logger=self.logger )
+        self.i2c  = ArduI2C.ArduBridgeI2C( bridge=self.comm, logger=self.logger)
+        self.spi  = ArduSPI.ArduBridgeSPI( bridge=self.comm, logger=self.logger)
+        self.cap  = CAP.ArduBridgePnS( bridge=self.comm, logger=self.logger)
+    
+    def _initLogger(self, logLevel=logging.INFO, fileHandler=True, consoleHandler=True):
+        """Initialize the logger with a console handler and an optional file handler"""
+        logger = logging.getLogger('GSOF_ArduBridge')
+        logger.setLevel(logLevel)
+        if consoleHandler:
+            ch = logging.StreamHandler()
+            ch.setLevel(logLevel)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            ch.setFormatter(formatter)
+            logger.addHandler(ch)
+        if fileHandler:
+            fh = logging.FileHandler('GSOF_ArduBridge.log')
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+        return logger
 
     def OpenClosePort(self, val, retry=-1):
         """

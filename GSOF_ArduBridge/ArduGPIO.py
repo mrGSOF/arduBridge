@@ -32,17 +32,16 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-import time, math
-from GSOF_ArduBridge import BridgeSerial
-from GSOF_ArduBridge import CON_prn
+import time
 
 class ArduBridgeGPIO():
     OUTPUT = 0 #< To set the pin to digital output mode
     INPUT = 1  #< To set the pin to digital input mode
     SERVO = 2  #< To set the pin to servo mode
+    LAST_MODE = SERVO
     
-    def __init__(self, bridge=False, v=False):
-        self.v = v
+    def __init__(self, bridge=False, logger=None):
+        self.logger = logger
         self.comm = bridge
         self.RES = {1:'OK', 0:'ERR' , -1:'ERR'}
         self.DIR = {1:'IN', 0:'OUT', 2:'SERVO'}
@@ -53,15 +52,16 @@ class ArduBridgeGPIO():
 
     def pinMode(self, pin, mode, init=0):
         """Set the mode of a digital pin on the Arduino (INPUT, OUTPUT, SERVO)"""
-        if (mode > 2):
-            mode = 1
+        if (mode > self.LAST_MODE):
+            raise ValueError("Invalid mode value, exceeded maximum value")
         if (pin < 112):
             vDat = [ord('D'), pin, mode]
             #print(str(vDat))
             self.comm.send(vDat)
         reply = self.comm.receive(1)
         #print(reply)
-        CON_prn.printf('DIR%d: %s - %s', par=(pin, self.DIR[mode], self.RES[reply[0]]), v=self.v)
+        if self.logger != None:
+            self.logger.debug('DIR%d: %s - %s', pin, self.DIR[mode], self.RES[reply[0]])
         return reply[0]
 
     def digitalWrite(self, pin, val):
@@ -73,7 +73,8 @@ class ArduBridgeGPIO():
             vDat = [ord('O'), pin, val]
             self.comm.send(vDat)
         reply = self.comm.receive(1)
-        CON_prn.printf('DOUT%d: %d - %s', par=(pin, val, self.RES[reply[0]]), v=self.v)
+        if self.logger != None:
+            self.logger.debug(f"DOUT{pin}: {val} - {self.RES[reply[0]]}")
         return reply[0]
 
     def digitalRead(self, pin):
@@ -84,9 +85,11 @@ class ArduBridgeGPIO():
         reply = self.comm.receive(1)
         if reply[0]:
             val = reply[1][0]
-            CON_prn.printf('DIN%d: %d', par=(pin, val), v=self.v)
+            if self.logger != None:
+                self.logger.debug(f"DIN{pin}: {val}")
             return val
-        CON_prn.printf('DIN%d: Error', par=(pin), v=self.v)
+        if self.logger != None:
+            self.logger.error(f"DIN{pin}: Error")
         return -1
 
     def servoWrite(self, pin, val):
@@ -96,15 +99,14 @@ class ArduBridgeGPIO():
         vDat = [ord('S'), pin, val]
         self.comm.send(vDat)
         reply = self.comm.receive(1)
-        CON_prn.printf('SERVO AT PIN<%d>: %d - %s', par=(pin, val, self.RES[reply[0]]), v=self.v)
+        if self.logger != None:
+            self.logger.debug(f"SERVO AT PIN<{pin}>: {val} - {self.RES[reply[0]]}")
         return reply[0]
 
     def servoScurve(self, pin, P0, P1, acc=200, DT=0.05):
         """Smooth transition from P0 to P1 at acceleration"""
         acc = abs(acc)
         DP = abs(P1-P0)
-        T = 2*math.sqrt(4*DP/acc)
-        Vmax = acc*T/2
 
         p = 0
         v = 0
@@ -122,7 +124,8 @@ class ArduBridgeGPIO():
                 srvP = P0 -p
                 
             self.servoWrite(pin, int(srvP))
-            CON_prn.printf("%1.2f, %1.3f", par=(t, srvP), v=False)   
+            if self.logger != None:
+                self.logger.debug("%1.2f, %1.3f" % (t, srvP))  
             time.sleep(DT)
 
     def pinPulse(self, pin, onTime):

@@ -40,7 +40,7 @@ note:'2' I2C packet header
      'w' write-restart
      'R' read
      'A' device-address
-     'L' data lenght
+     'L' data length
 """
 
 __version__ = "1.0.0"
@@ -53,12 +53,10 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 import time
-from GSOF_ArduBridge import BridgeSerial
-from GSOF_ArduBridge import CON_prn
 
 class ArduBridgeI2C():
-    def __init__(self, bridge=False, v=False):
-        self.v = v
+    def __init__(self, bridge=False, logger=None):
+        self.logger = logger
         self.comm = bridge
         self.RES = {1:'OK', -1:'ERR'}
 
@@ -110,10 +108,10 @@ class ArduBridgeI2C():
         self.comm.send(vDat)
         reply = self.comm.receive(1)
   
-        if self.v:
+        if self.logger != None:
             if reply[0] != 0:      #did we received a byte
                 res = reply[1][0]  #if yes, read the result
-                CON_prn.printf('I2C-WR: Dev-0x%02x, Reg%d - %s', par=(dev, reg, self.ERROR[res]), v=True)
+                self.logger.debug("I2C-WR: Dev-0x%02x, Reg%d - %s" % (dev, reg, self.ERROR[res]))
         return reply
 
     def readRaw(self, dev, N):
@@ -132,9 +130,11 @@ class ArduBridgeI2C():
             reply = self.comm.receive(n)    #Read n bytes
             if reply[0] != 0:
                 val = reply[1]
-                CON_prn.printf('I2C-RD: Dev-0x%02x, Dat %s ', par=(dev, str(val)), v=self.v)
+                if self.logger != None:
+                    self.logger.debug("I2C-RD: Dev-0x%02x, Dat %s" % (dev, str(val)))
                 return val
-        CON_prn.printf('I2C-RD: Dev%d - Error', par=(dev), v=self.v)
+        if self.logger != None:
+            self.logger.error(f"I2C-RD: Dev{dev} - Error")
         return -1
 
     def writeRegister(self, dev, reg, vByte):
@@ -150,10 +150,11 @@ class ArduBridgeI2C():
         self.comm.send(vDat)
         reply = self.comm.receive(1)
   
-        if self.v:
+        if self.logger != None:
             if reply[0] != 0:      #did we received a byte
                 res = reply[1][0]  #if yes, read the result
-                CON_prn.printf('I2C-WR: Dev-0x%02x, Reg%d - %s', par=(dev, reg, self.ERROR[res]), v=True)
+                if self.logger != None:
+                    self.logger.debug('I2C-WR: Dev-0x%02x, Reg%d - %s' % (dev, reg, self.ERROR[res]))
         return reply
 
     def readRegister(self, dev, reg, N, delay=0.0):
@@ -197,8 +198,9 @@ class ArduBridgeI2C():
                 reply = self.comm.receive(n)    #< Read N bytes
                 if reply[0] != 0:
                     val = reply[1]
-                    CON_prn.printf('I2C-RD: Dev-0x%02x, Reg%d, Dat %s ', par=(dev, reg, str(val)), v=self.v)
+                    if self.logger != None:
+                        self.logger.debug("I2C-RD: Dev-0x%02x, Reg%d, Dat %s " % (dev, reg, str(val)))
                     return val
-            
-        CON_prn.printf('I2C-RD: Dev%d, Reg%d - Error', par=(dev, reg), v=self.v)
+        if self.logger != None:
+            self.logger.error(f"I2C-RD: Dev{dev}, Reg{reg} - Error")
         return -1

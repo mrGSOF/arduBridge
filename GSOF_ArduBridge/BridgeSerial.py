@@ -38,29 +38,30 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-import serial, time, threading, sys
+import time, sys, threading
+import serial
 
 class ArduBridgeComm():
     """Open, Close, Send, Receive methods"""
     RST  = 0x1b #< Reset symbol
     ESC  = 0x5c #< Escape symbol
-    CR   = 0x0d #< Carriage retuen
+    CR   = 0x0d #< Carriage return
     LF   = 0x0a #< Linefeed
     ERR  = -1
 
-    def __init__(self, COM='COM1', baud=9600, v=False, PortStatusReport=False):
+    def __init__(self, COM, baud=115200*2, PortStatusReport=False, RxTimeOut = 0.015, writeTimeout=0.1, interByteTimeout=None, logger=None):
         self.pyVer = sys.version_info.major +sys.version_info.minor/10.0
         print('GSOF_ArduSerial v1.1 for Python-%s'%(self.pyVer))
-        self.RxTimeOut = 0.005
         self.RxTry = 25
-        self.verbose = v
+        self.logger = logger
         self.LINK = False
         self.semaTX = threading.Semaphore(1)
         self.semaRX = threading.Semaphore(1)
         self.ser = serial.Serial(None,
                                  baud,
                                  timeout=self.RxTimeOut,
-                                 writeTimeout=900
+                                 writeTimeout=writeTimeout,
+                                 inter_byte_timeout=interByteTimeout
                                  )
         self.ser.port = COM
         self.baud = baud

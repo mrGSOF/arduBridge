@@ -42,7 +42,6 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-from GSOF_ArduBridge import CON_prn
 from GSOF_ArduBridge import ExtGpio_base as GPIO
 
 class MAX7300AAX(GPIO.ExtGpio_base):
@@ -63,7 +62,7 @@ class MAX7300AAX(GPIO.ExtGpio_base):
 
     def __init__(self, comm=False, devID=0x40, v=False):
         self.ID = 'MAX7300AAX-ID 0x%02x'%(devID)
-        self.v = v
+        self.logger = logger
         self.comm = comm
         self.devID = devID
 
@@ -81,22 +80,18 @@ class MAX7300AAX(GPIO.ExtGpio_base):
         val = mode
         val |= (transitionDetection&0x1)<<7
         reply = self._writeRegister(self.configReg, [mode])
-        if self.v:
-            CON_prn.printf('%s: MODE-Set: %s',
-                           par=(self.ID, self.RES[reply[0]]),
-                           v=True)
+        if self.logger != None:
+            self.logger.debug(f"{self.ID}: MODE-Set: {self.RES[reply[0]]}")
         return reply[0]
 
     def getMode(self) -> list:
         """"""
         reply = self._readRegister(self.configReg, 1)
-        if self.v:
+        if self.logger != None:
             if reply != -1:
                 mode = reply[0]&1
                 td = (reply[0]>>7)&1
-                CON_prn.printf('%s: MODE-Get: %s, Transition-Detection: %s',
-                               par=(self.ID, self.MODE[mode], self.tDet[td]),
-                               v=True)
+                self.logger.debug(f"{self.ID}: MODE-Get: {self.MODE[mode]}, Transition-Detection: {self.tDet[td]}")
         return reply
 
     def clearAllPins(self) -> None:
@@ -120,22 +115,24 @@ class MAX7300AAX(GPIO.ExtGpio_base):
         if port > self.maxPorts:
             N = self.maxPorts -port #< Set upto maxPort
         reply = self._writeRegister(self.bankModeBase+port, val[0:N])
-        CON_prn.printf( '%s: bankMode Set: %s', par=(self.ID, self.RES[reply[0]]) )
+        if self.logger != None:
+            self.logger.debug( f"{self.ID}: bankMode Set: {self.RES[reply[0]]}")
         return reply
 
     def getPortMode(self, port=0, N=1) -> list:
         if (B+N) > self.maxPorts:
             N = self.maxPorts-port #< Get upto maxPorts
         reply = self._readRegister(self.bankModeBase+port, N)
-        CON_prn.printf( '%s: bankMode: %s', par=(self.ID, str(reply)) )
+        if self.logger != None:
+            self.logger.debug( f"{self.ID}: bankMode: {str(reply)}")
         return reply
  
     def setPort(self, port, val):
         """Set the state of the specific port#"""
         portReg = self.portBase +port*self.pinsPerPort
         reply = self._writeRegister(portReg, [val&0xff])
-        if self.v:
-            CON_prn.printf('%s: POPT%d-Set: %s', par=(self.ID, port, self.RES[reply[0]]), v=True)
+        if self.logger != None:
+            self.logger.debug( f"{self.ID}: PORT{port}-Set: {self.RES[reply[0]]}")
         return reply[0]
 
     def getPort(self, port):
@@ -143,9 +140,11 @@ class MAX7300AAX(GPIO.ExtGpio_base):
         portReg = self.portBase +port*self.pinsPerPort
         reply = self._readRegister(portBaseReg, 1)
         if reply != -1:
-            CON_prn.printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
+            if self.logger != None:
+                self.logger.debug("%s: PORT%d = 0x%02x (%s)" % (self.ID, port, reply[0], bin(reply[0])))
             return reply[0]
-        CON_prn.printf('%s: PORT%d-Get: Error', par=(self.ID, port), v=self.v)
+        if self.logger != None:
+            self.logger.error(f"{self.ID}: PORT{port}-Get: Error")
         return -1
 
 ### Pin level API
@@ -153,7 +152,8 @@ class MAX7300AAX(GPIO.ExtGpio_base):
         """Set the direction of an individual pin"""
         port, pVal = self._setPin(pin, mode)
         reply = self.setBankMode(port, pVal)
-        CON_prn.printf('%s: BANK%d<%d> <-- %d - %s', par=(self.ID, port, pin, pVal, self.RES[reply]), v=self.v)
+        if self.logger != None:
+            self.logger.debug(f"{self.ID}: BANK{port}<{pin}> <-- {pVal} - {self.RES[reply]}")
         return reply
 
     def setPin(self, pin, valList):
@@ -167,7 +167,8 @@ class MAX7300AAX(GPIO.ExtGpio_base):
                 val = 1
             pinReg = self.pinBase +pin
             reply = self._writeRegister(pinReg, [val])
-            CON_prn.printf('%s: PIN%d-Set: %d - %s', par=(self.ID, pin, val, self.RES[reply[0]]), v=self.v)
+            if self.logger != None:
+                self.logger.debug(f"{self.ID}: PIN{pin}-Set: {val} - {self.RES[reply[0]]}")
         return reply[0]
 
     def getPin(self, pinList):
@@ -179,10 +180,12 @@ class MAX7300AAX(GPIO.ExtGpio_base):
             pinReg = self.pinBase +pin
             reply = self._readRegister(pinReg, 1)
             if reply != -1:
-                CON_prn.printf('%s: PIN%d = %d', par=(self.ID, pin, reply[0]), v=self.v)
+                if self.logger != None:
+                    self.logger.debug(f"{self.ID}: PIN{pin} = {reply[0]}")
                 result.append(reply[0])
             else:
-                CON_prn.printf('%s: PIN%d-Get: Error', par=(self.ID, pin), v=self.v)
+                if self.logger != None:
+                    self.logger.error(f"{self.ID}: PIN{pin}-Get: Error")
                 result.append(-1)
         return result
 

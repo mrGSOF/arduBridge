@@ -40,17 +40,12 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-from GSOF_ArduBridge import BridgeSerial
-from GSOF_ArduBridge import CON_prn
-
 class ArduBridgePnS():
-    def __init__(self, bridge=False, v=False):
-        self.v = v
+    def __init__(self, bridge=False, logger=None):
+        self.logger = logger
         self.comm = bridge
 
-    def pulseAndSample(self, pulsePin, adcPin, samples=64, v=None):
-        if v == None:
-            v = self.v
+    def pulseAndSample(self, pulsePin, adcPin, samples=64):
 
         vDat = [ord('C'), pulsePin, adcPin, samples]
         self.comm.send(vDat)
@@ -58,11 +53,12 @@ class ArduBridgePnS():
 
         if reply[0] != -1:
             val = reply[1]
-            CON_prn.printf('AN%d: %s', par=(adcPin, str(val)), v=v)
+            if self.logger != None:
+                self.logger.debug(f"AN{adcPin}: {str(val)}")
             return val
-
-        CON_prn.printf('AN%d: Error', par=(adcPin), v=v)
+        if self.logger != None:
+            self.logger.error(f"AN{adcPin}: Error")
         return -1
 
-    def measCap(self, pulsePin, adcPin, samples=64, v=None):
+    def measCap(self, pulsePin, adcPin, samples=64):
         return

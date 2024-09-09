@@ -43,10 +43,6 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-import time
-from GSOF_ArduBridge import BridgeSerial
-from GSOF_ArduBridge import CON_prn
-
 class ArduBridgeSPI():
     MODE0 = 0 #< Clock is normally low, Data is sampled on the transition from low to high (leading edge)
     MODE1 = 1 #< Clock is normally low, Data is sampled on the transition from high to low (trailing edge)
@@ -54,8 +50,8 @@ class ArduBridgeSPI():
     MODE3 = 3 #< Clock is normally high, Data is sampled on the transition from low to high (trailing edge)
     OFF   = 4 #< SPI-OFF
 
-    def __init__(self, bridge=False, v=False):
-            self.v = v
+    def __init__(self, bridge=False, logger=None):
+            self.logger = logger
             self.comm = bridge
             self.RES = {1:'OK', -1:'ERR'}
             self.mode = -1
@@ -76,27 +72,27 @@ class ArduBridgeSPI():
                     "SPI_MODE3:\nClock is normally high (CPOL = 1)\nData is sampled on the transition from low to high (trailing edge) (CPHA = 1)")
         vDat = [self.SPI_CFG_PACKET_ID, mode]
         self.comm.send(vDat)
-        reply = self.comm.receive(1) #Read the recevied bytes
+        reply = self.comm.receive(1) #Read the received bytes
         if reply[0] != -1:      #did we received a byte
             res = reply[1][0]  #if yes, read the result
             if v:
                 if mode < self.OFF:
-                    print(modeDesc[mode])
+                    self.logger.info(modeDesc[mode])
                 else:
-                    print("SPI-OFF")
+                    self.logger.info("SPI-OFF")
             self.mode = mode
         else:
-            print("Error setting the SPI mode\n")
-        
+            self.logger.error("Error setting the SPI mode\n")
+
     def write_read(self, vByte):
         """Send and receive list of bytes (vByte) on the SPI bus. Returns a list of bytes"""
         vDat = [self.SPI_PACKET_ID]+ vByte #SPI packet-ID +data-vector
         self.comm.send(vDat)
         self.comm.sendReset()         #End the SPI mode
-        reply = self.comm.receive(len(vByte)) #Read the recevied bytes
+        reply = self.comm.receive(len(vByte)) #Read the received bytes
   
-        if self.v:
+        if self.logger != None:
             if reply[0] != 0:      #did we received a byte
                 res = reply[1][0]  #if yes, read the result
-                CON_prn.printf('SPI-Rx: %d - %s', par=(dev, reg, self.ERROR[res]), v=True)
+                self.logger.debug(f"SPI-Res: {res}")
         return reply
