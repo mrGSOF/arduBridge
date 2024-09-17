@@ -29,7 +29,6 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-from GSOF_ArduBridge import CON_prn
 from GSOF_ArduBridge import ExtGpio_base as GPIO
 
 class PCA9505(GPIO.ExtGpio_base):
@@ -81,14 +80,14 @@ class PCA9505(GPIO.ExtGpio_base):
         if (port+N) > self.maxPorts:
             N = self.maxPorts-port
         reply = self._writeRegister(self.IOC_base+port, val[0:N])
-        CON_prn.printf( '%s: port direction Set: %s', par=(self.ID, str(self.RES[reply[0]])) )
+        printf( '%s: port direction Set: %s', par=(self.ID, str(self.RES[reply[0]])) )
         return reply
 
     def getPortMode(self, port=0, N=1) -> list:
         if (port+N) > self.maxPorts:
             N = self.maxPorts-port
         reply = self._readRegister(self.IOC_base+port, N)
-        CON_prn.printf( '%s: port direction: %s {bit: 0-%s}', par=(self.ID, str(reply), self.MODE[0]) )
+        printf( '%s: port direction: %s {bit: 0-%s}', par=(self.ID, str(reply), self.MODE[0]) )
         return reply
 
     def setPort(self, port, val):
@@ -98,7 +97,7 @@ class PCA9505(GPIO.ExtGpio_base):
             self.portOut[port] = val
             portReg = self.OP_base +port
             reply = self._writeRegister(portReg, [val])
-            CON_prn.printf('%s: POPT%d <-- %d %s', par=(self.ID, port, val, self.RES[reply[0]]), v=self.v)
+            printf('%s: POPT%d <-- %d %s', par=(self.ID, port, val, self.RES[reply[0]]), v=self.v)
             return reply[0]
         return -1
 
@@ -107,9 +106,9 @@ class PCA9505(GPIO.ExtGpio_base):
         portReg = self.IP_base +port
         reply = self._readRegister(portReg, 1)
         if reply != -1:
-            CON_prn.printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
+            printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
             return reply[0]
-        CON_prn.printf('%s: PORT%d-Get: Error', par=(self.ID, port), v=self.v)
+        printf('%s: PORT%d-Get: Error', par=(self.ID, port), v=self.v)
         return -1
 
 ### Pin level API
@@ -117,7 +116,7 @@ class PCA9505(GPIO.ExtGpio_base):
         """Set the direction of an individual pin"""
         port, pVal = self._setPin(pin, mode)
         reply = self.setPortMode(port, pVal)
-        CON_prn.printf('%s: BANK%d<%d> <-- %d - %s', par=(self.ID, port, pin, pVal, self.RES[reply]), v=self.v)
+        printf('%s: BANK%d<%d> <-- %d - %s', par=(self.ID, port, pin, pVal, self.RES[reply]), v=self.v)
         return reply
 
     def _setPin(self, pin, val) -> int:
@@ -137,7 +136,7 @@ class PCA9505(GPIO.ExtGpio_base):
         for val in valList:
             port, pVal = self._setPin(pin, val)
             reply = self.setPort(port, pVal)
-            CON_prn.printf('%s: PORT%d<%d> <-- %d - %s', par=(self.ID, port, pin, val, self.RES[reply]), v=self.v)
+            printf('%s: PORT%d<%d> <-- %d - %s', par=(self.ID, port, pin, val, self.RES[reply]), v=self.v)
             pin += 1
         return reply
 
@@ -154,8 +153,20 @@ class PCA9505(GPIO.ExtGpio_base):
             if reply != -1:
                 reply = (reply>>_pin)&1
             result.append(reply)
-            CON_prn.printf('%s: <%d> (PORT%d<%d>) = %d', par=(self.ID, pin, _port, _pin, reply), v=self.v)
+            printf('%s: <%d> (PORT%d<%d>) = %d', par=(self.ID, pin, _port, _pin, reply), v=self.v)
         return result
+
+def printf(text, par=(), data='', v=True, _file=False):
+    PrintLine = text % par
+    PrintLine += str(data) +' '
+    
+    if PrintLine[-1]=='\n':
+        PrintLine = PrintLine[:-1]
+    if v:
+        print(PrintLine)
+    if (_file):
+        if (_file.closed == False):
+            _file.write(PrintLine+'\n')
 
 if __name__ == "__main__":
     gpio = PCA9505()

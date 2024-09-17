@@ -11,7 +11,7 @@ Date: 08/Mar/2021
 #Basic modules to load
 import time
 from GSOF_ArduBridge import ArduBridge     #< The GSOF_arduBridge classes
-from GSOF_ArduBridge import ArduBridge_HW  #< The GSOF_arduBridgeShield library
+from GSOF_ArduBridge import ArduShield_Uno #< The GSOF_arduBridgeShield library
 
 def close():
     ardu.OpenClosePort(0)

@@ -14,10 +14,10 @@ from GSOF_ArduBridge import udpControl                   #< To control the movem
 from GSOF_ArduBridge import ArduBridge                   #< The communication stack
 from GSOF_ArduBridge import ArduBridge_HW                #< ArduShield class
 from GSOF_ArduBridge import ElectrodeGpioStack           #< Stack of multiple electrode-driver boards
-from GSOF_ArduBridge import pca9505_class as PCA9505     #< PCA9505 port extender
-from GSOF_ArduBridge import max7300_class as MAX7300     #< MAX7300 port extender 
 from GSOF_ArduBridge import threadPID_HW11 as threadPID  #< Closed loop controller for temperature control
 from GSOF_ArduBridge import UDP_Send                     #< Send telemetry over UDP
+from GSOF_ArduBridge.device import pca9505_class as PCA9505     #< PCA9505 port extender
+from GSOF_ArduBridge.device import max7300_class as MAX7300     #< MAX7300 port extender 
 
 def extEval(s):
     s=str(s)

@@ -34,7 +34,7 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-from GSOF_ArduBridge import ads1x15_class
+from GSOF_ArduBridge.device import ads1x15_class
 
 class ADS1115(ads1x15_class.ADS1x15):
     """Class for the ADS1115 16 bit ADC"""

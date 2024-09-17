@@ -10,7 +10,7 @@ Date: 18/Apr/2023
 
 #Basic modules to load
 from GSOF_ArduBridge import ArduBridge
-from GSOF_ArduBridge import ArduBridge_HW
+from GSOF_ArduBridge import ArduShield_Uno
 
 def quickHelp():
     print("Quick help:")

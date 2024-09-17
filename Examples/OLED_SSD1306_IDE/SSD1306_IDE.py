@@ -11,7 +11,7 @@ Date: 07/July/2023
 #Basic modules to load
 import time
 from GSOF_ArduBridge import ArduBridge
-from GSOF_ArduBridge import SSD1306_class
+from GSOF_ArduBridge.device import SSD1306_class
 from TestScripts import testScripts
 
 pin_dispON = 7 #9

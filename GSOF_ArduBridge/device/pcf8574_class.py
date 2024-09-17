@@ -1,4 +1,19 @@
 """
+    This file is part of GSOF_ArduBridge.
+
+    GSOF_ArduBridge is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    GSOF_ArduBridge is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
+
 Python class for interacting with the PCF8574 I2C 8-Bit I/O expander.
 The PCF8574 is a 8-bit input/output (I/O) expander that can be used to add additional I/O capabilities.
 It communicates with the host device via I2C and has an interrupt output that can be used to signal when the device's input pins have changed.

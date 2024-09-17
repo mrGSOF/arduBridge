@@ -28,8 +28,8 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-from GSOF_ArduBridge import HVSW_Driver_base as BASE
-from GSOF_ArduBridge import max7300_class as GPIO_IC
+from GSOF_ArduBridge.device import HVSW_Driver_base as BASE
+from GSOF_ArduBridge.device import max7300_class as GPIO_IC
 
 class HVSW_Driver(BASE.HVSW_Driver_base):
     def __init__(self, comm=False, devID=[0,1], startPin=0, endPin=39, v=False):

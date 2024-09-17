@@ -5,19 +5,19 @@ To customize the environment to your needs. You will need to change
 he parameters in the "PARAMETER BLOCK" in the __main__ section
 
 By: Guy Soffer
-Date: 26/May/2024
+Date: 16/Sep/2024
 """
 
 #Basic modules to load
 import time
-from GSOF_ArduBridge import udpControl                   #< To control the movement of droplets by UDP commands
-from GSOF_ArduBridge import ArduBridge                   #< The communication stack
-from GSOF_ArduBridge import ArduBridge_HW                #< ArduShield class
-from GSOF_ArduBridge import HVSW_Stack                   #< Stack of multiple High-Voltage-Switch boards
-from GSOF_ArduBridge import HVSW_Driver_V1 as DRV_V1     #<
-from GSOF_ArduBridge import HVSW_Driver_V2 as DRV_V2     #< 
-from GSOF_ArduBridge import threadPID_HW11 as threadPID  #< Closed loop controller for temperature control
-from GSOF_ArduBridge import UDP_Send                     #< Send telemetry over UDP
+from GSOF_ArduBridge import udpControl                      #< To control the movement of droplets by UDP commands
+from GSOF_ArduBridge import ArduBridge                      #< The communication stack
+from GSOF_ArduBridge import ArduBridge_HW                   #< ArduShield class
+from GSOF_ArduBridge import threadPID_HW11 as threadPID     #< Closed loop controller for temperature control
+from GSOF_ArduBridge import UDP_Send                        #< Send telemetry over UDP
+from GSOF_ArduBridge.device import HVSW_Stack               #< Stack of multiple High-Voltage-Switch boards
+from GSOF_ArduBridge.device import HVSW_Driver_V1 as DRV_V1 #<
+from GSOF_ArduBridge.device import HVSW_Driver_V2 as DRV_V2 #< 
 
 def extEval(s):
     s=str(s)
