@@ -42,7 +42,7 @@ from GSOF_ArduBridge import ArduSPI
 from GSOF_ArduBridge import ArduPulseAndSample as CAP
 
 class ArduBridge():
-    def __init__(self, COM='COM9', baud=115200*2, logger=None, logLevel=logging.INFO, fileHandler=False, consoleHandler=True):
+    def __init__(self, COM='COM9', baud=115200*2, logger=None, logLevel=logging.INFO, fileHandler=False, consoleHandler=True, RxTimeOut=0.015):
 
         version = 'v1.1 running on Python %s'%(sys.version[0:5])
         self.logger = logger
@@ -51,7 +51,7 @@ class ArduBridge():
         self.logger.info('GSOF_ArduBridge %s'%(version))
         self.ExtGpio = [0,0]
         self.COM  = COM
-        self.comm = BridgeSerial.ArduBridgeComm( COM=COM, baud=baud, logger=self.logger )
+        self.comm = BridgeSerial.ArduBridgeComm( COM=COM, baud=baud, logger=self.logger, RxTimeOut=RxTimeOut )
         self.gpio = ArduGPIO.ArduBridgeGPIO( bridge=self.comm, logger=self.logger )
         self.an   = ArduAnalog.ArduBridgeAn(bridge=self.comm, logger=self.logger )
         self.i2c  = ArduI2C.ArduBridgeI2C( bridge=self.comm, logger=self.logger)

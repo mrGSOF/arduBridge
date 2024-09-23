@@ -111,7 +111,7 @@ class ArduBridgeI2C():
         if self.logger != None:
             if reply[0] != 0:      #did we received a byte
                 res = reply[1][0]  #if yes, read the result
-                self.logger.debug("I2C-WR: Dev-0x%02x, Reg%d - %s" % (dev, reg, self.ERROR[res]))
+                self.logger.debug("I2C-WR: Dev-0x%02x - %s" % (dev, self.ERROR[res]))
         return reply
 
     def readRaw(self, dev, N):
