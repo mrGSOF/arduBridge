@@ -61,7 +61,7 @@ setup(
       author='Guy Soffer',
       author_email='gsoffer@yahoo.com',
       license='GPL-3.0-or-later',
-      packages=['GSOF_ArduBridge'],
+      packages=['GSOF_ArduBridge', 'GSOF_ArduBridge.device'],
       install_requires=[
         'pyserial>=2.7',
     ]

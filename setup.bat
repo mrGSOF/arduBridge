@@ -1,2 +1,3 @@
-python setup.py install
+rem python setup.py install
+pip install .
 PAUSE
