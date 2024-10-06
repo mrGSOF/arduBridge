@@ -25,7 +25,7 @@ def quickHelp():
     
 if __name__ == "__main__":
     #\/\/\/ CHANGE THESE PARAMETERS \/\/\/
-    port = "COM6"          #< Change to the correct COM to access the Arduino
+    port = "auto"          #< Change to the correct COM to access the Arduino
     #port = "/dev/ttyUSB0" #< Under Linux
     baudRate = 115200*2    #< Leave as is (230400 bits per second)
     #/\/\/\   PARAMETERS BLOCK END  /\/\/\

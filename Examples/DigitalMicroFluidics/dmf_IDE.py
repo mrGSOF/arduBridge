@@ -32,7 +32,7 @@ def close():
 if __name__ == "__main__":
     #\/\/\/ CHANGE THESE PARAMETERS \/\/\/
     from modules import Chip104_protocol as protocol #<--Your experiment protocol file name
-    port = "COM10"                #< Change to the correct COM-Port to access the Arduino
+    port = "auto"                #< Change to the correct COM-Port to access the Arduino
     baudRate = 115200*2          #< ArduBridge_V1.0 uses 115200 other versions use 230400 = 115200*2 
     ONLINE = True#False          #< True to enable work with real Arduino, False for simulation only
     PID1 = False                 #< True / False to build a PID controller

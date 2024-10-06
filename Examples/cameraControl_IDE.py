@@ -52,7 +52,7 @@ def CameraMovement(ards):
 
 if __name__ == "__main__":
     #\/\/\/ CHANGE THESE PARAMETERS \/\/\/
-    port = 'COM6'        #<--Change to the correct COM-Port to access the Arduino
+    port = 'auto'        #<--Change to the correct COM-Port to access the Arduino
     baudRate = 115200*2  #<--Leave as is
     #/\/\/\   PARAMETERS BLOCK END  /\/\/\
     
