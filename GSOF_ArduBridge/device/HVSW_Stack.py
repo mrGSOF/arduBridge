@@ -35,14 +35,14 @@ __status__ = "Production"
 from GSOF_ArduBridge import ExtGpio_base as BASE
 
 class HVSW_Stack(BASE.ExtGpio_base):
-    def __init__(self, stack=[], v=False):
-        self.v = v
+    def __init__(self, stack=[], logger=None):
+        self.logger = logger
         self.stack = stack
 
     def init(self) -> None:
         for dev in self.stack:
             print('\nConfiguring %s ID:%s [st:end]=%s'%(dev.ID, str(dev.getDevID()), str(dev.getPinRange())))
-            dev.init(v=self.v)
+            dev.init(self.logger)
 
     def _getBoard(self, pin):
         for board in self.stack:
@@ -71,7 +71,7 @@ class HVSW_Stack(BASE.ExtGpio_base):
             if board != None:
                 vals[i] = board.getPin(pin)[0]
             else:
-                if self.v == True:
+                if self.logger != None:
                     print("NO BOARD ASSIGNED TO PIN%d"%(pin))
                 vals[i] = -1
         return vals

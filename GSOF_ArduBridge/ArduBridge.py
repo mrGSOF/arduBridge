@@ -109,14 +109,14 @@ class ArduBridge():
         """Sends a request for ID and returns the the reply if received, or False otherwise"""
         self.comm.send([ord('?')])
         reply = self.comm.receive(1)
-        if reply[0] != -1:
+        if reply[0] > 0:
             s = ''
             ACK = 1
             N = reply[1][0]
-            while (ACK != -1) and (N > 0):
+            while (ACK > 0) and (N > 0):
                 reply = self.comm.receive(1)
                 ACK = reply[0]
-                if ACK != -1:
+                if ACK > 0:
                     N -= 1
                     s += chr(reply[1][0])
             s += '\n'

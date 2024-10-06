@@ -9,10 +9,10 @@ Date: 16/Sep/2024
 """
 
 #Basic modules to load
-import time
+import time, logging
 from GSOF_ArduBridge import udpControl                      #< To control the movement of droplets by UDP commands
 from GSOF_ArduBridge import ArduBridge                      #< The communication stack
-from GSOF_ArduBridge import ArduBridge_HW                   #< ArduShield class
+from GSOF_ArduBridge import ArduShield_Uno                  #< ArduShield class
 from GSOF_ArduBridge import threadPID_HW11 as threadPID     #< Closed loop controller for temperature control
 from GSOF_ArduBridge import UDP_Send                        #< Send telemetry over UDP
 from GSOF_ArduBridge.device import HVSW_Stack               #< Stack of multiple High-Voltage-Switch boards
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         ]
     
     if STACK_BUILD != []:
-        ExtGpio = HVSW_Stack.HVSW_Stack(stack=STACK_BUILD, v=True)#True)
+        ExtGpio = HVSW_Stack.HVSW_Stack(stack=STACK_BUILD, logger=ardu.logger)#True)
         if ONLINE:
             ExtGpio.init()
             ardu.ExtGpio = ExtGpio

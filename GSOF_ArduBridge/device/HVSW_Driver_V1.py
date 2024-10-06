@@ -32,22 +32,22 @@ from GSOF_ArduBridge.device import HVSW_Driver_base as BASE
 from GSOF_ArduBridge.device import max7300_class as GPIO_IC
 
 class HVSW_Driver(BASE.HVSW_Driver_base):
-    def __init__(self, comm=False, devID=[0,1], startPin=0, endPin=39, v=False):
+    def __init__(self, comm=False, devID=[0,1], startPin=0, endPin=39, logger=None):
         super().__init__(startPin, endPin)
         devID[0] += GPIO_IC.MAX7300AAI.devID
         devID[1] += GPIO_IC.MAX7300AAI.devID
         self.ID = "HVSW_Driver-V1 ID 0x%02x,0x%02x"%(devID[0], devID[1])
-        self.v = v
+        self.logger = logger
         self.comm = comm
-        self.devs = [GPIO_IC.MAX7300AAI(comm=comm, devID=devID[0], v=v),
-                     GPIO_IC.MAX7300AAI(comm=comm, devID=devID[1], v=v)]
+        self.devs = [GPIO_IC.MAX7300AAI(comm=comm, devID=devID[0], logger=logger),
+                     GPIO_IC.MAX7300AAI(comm=comm, devID=devID[1], logger=logger)]
 
-    def init(self, v=None):
+    def init(self, logger=None):
         """Clear all pins and set thier direction to output"""
         for dev in self.devs:
-            if v == None:
-                v = self.v
-            dev.v = v
+            if logger == None:
+                logger = self.logger
+            dev.logger = logger
             dev.clearAllPins()
             dev.setAllPinsToOutput()
 

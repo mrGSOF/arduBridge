@@ -60,7 +60,7 @@ class MAX7300AAX(GPIO.ExtGpio_base):
     MODE = {0:'Shutdown', 1:'Normal'}
     tDet = {0:'Disable', 1:'Enable'}
 
-    def __init__(self, comm=False, devID=0x40, v=False):
+    def __init__(self, comm=False, devID=0x40, logger=None):
         self.ID = 'MAX7300AAX-ID 0x%02x'%(devID)
         self.logger = logger
         self.comm = comm
@@ -197,6 +197,6 @@ class MAX7300AAI(MAX7300AAX):
     pinBase      = 0x2c
     portBase     = 0x4c
 
-    def __init__(self, comm=False, devID=0x00, v=False):
-        super().__init__(comm, devID, v)
+    def __init__(self, comm=False, devID=0x00, logger=None):
+        super().__init__(comm, devID, logger)
         self.ID = 'MAX7300AAI-ID 0x%02x'%(devID)

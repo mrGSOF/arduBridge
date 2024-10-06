@@ -9,7 +9,7 @@ Date: 08/Mar/2021
 """
 
 #Basic modules to load
-import time
+import time, logging
 from GSOF_ArduBridge import ArduBridge     #< The GSOF_arduBridge classes
 from GSOF_ArduBridge import ArduShield_Uno #< The GSOF_arduBridgeShield library
 
@@ -19,13 +19,13 @@ def close():
 
 if __name__ == "__main__":
     #\/\/\/ CHANGE THESE PARAMETERS \/\/\/
-    port = 'COM6'        #<--Change to the correct COM-Port to access the Arduino
+    port = 'COM10'        #<--Change to the correct COM-Port to access the Arduino
     baudRate = 115200*2  #<--Leave as is
     #/\/\/\   PARAMETERS BLOCK END  /\/\/\
     
     print('Using port %s at %d'%(port, baudRate))
     ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate, logLevel=logging.INFO ) #< The GSOF_arduBridge core object
-    ards = ArduBridge_HW.ArduBridge_Shield(ardu)                                   #< The GSOF_arduBridge HW shield object
+    ards = ArduShield_Uno.ArduBridge_Shield(ardu)                                   #< The GSOF_arduBridge HW shield object
     
     print('Discovering ArduBridge on port %s'%(port))
     if ardu.OpenClosePort(1):
@@ -34,12 +34,16 @@ if __name__ == "__main__":
         print('ArduBridge is not responding.')
         
     ### Configure the pins for servo control
-    ards.servoMode(2,1) #< Servo on PWM connector#1
-    ards.servoMode(3,1) #< Servo on PWM connector#2
+    ards.servoMode(2,1) #< Servo on PWM connector#2
+    ards.servoMode(3,1) #< Servo on PWM connector#3
 
     ### Set the servo position 
-    ards.servoSet(2,50)               #< Step transition to target position
+    ards.servoSet(2,50)               #< Step transition to target position (0 to 250)
     ards.servoSet(3,170)
     time.sleep(1.0)
     ards.servoScurve(2, 50, 170, 800) #< Smooth transition from -> to positions 
     ards.servoScurve(3, 170, 50, 500)
+
+    print("ards.servoMode(pwmCh, 1) #< Servo on PWM connector#")
+    print("ards.servoSet(pwmCh, pos)  #< Step transition to target position (0 to 250)")
+    print("ards.servoScurve(pwmCh, P0=0, P1=250, acc=800, DT=0.05) #< Smooth transition from -> to positions")

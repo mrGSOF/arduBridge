@@ -47,9 +47,9 @@ class PCA9505(GPIO.ExtGpio_base):
     POL = {0:'Active-High', 1:'Active-Low'}
     MODE = {0:'Shutdown', 1:'Normal'}
     
-    def __init__(self, comm=False, devID=0x20, v=False):
+    def __init__(self, comm=False, devID=0x20, logger=None):
         self.ID = 'PCA9505-ID 0x%02x'%(devID)
-        self.v = v
+        self.logger = logger
         self.comm = comm
         self.devID = devID
         self.portOut = [0]*self.maxPorts
@@ -80,14 +80,14 @@ class PCA9505(GPIO.ExtGpio_base):
         if (port+N) > self.maxPorts:
             N = self.maxPorts-port
         reply = self._writeRegister(self.IOC_base+port, val[0:N])
-        printf( '%s: port direction Set: %s', par=(self.ID, str(self.RES[reply[0]])) )
+        printf( '%s: port direction Set: %s', par=(self.ID, str(self.RES[reply[0]])), logger=self.logger )
         return reply
 
     def getPortMode(self, port=0, N=1) -> list:
         if (port+N) > self.maxPorts:
             N = self.maxPorts-port
         reply = self._readRegister(self.IOC_base+port, N)
-        printf( '%s: port direction: %s {bit: 0-%s}', par=(self.ID, str(reply), self.MODE[0]) )
+        printf( '%s: port direction: %s {bit: 0-%s}', par=(self.ID, str(reply), self.MODE[0]), logger=self.logger )
         return reply
 
     def setPort(self, port, val):
@@ -97,7 +97,7 @@ class PCA9505(GPIO.ExtGpio_base):
             self.portOut[port] = val
             portReg = self.OP_base +port
             reply = self._writeRegister(portReg, [val])
-            printf('%s: POPT%d <-- %d %s', par=(self.ID, port, val, self.RES[reply[0]]), v=self.v)
+            printf('%s: POPT%d <-- %d %s', par=(self.ID, port, val, self.RES[reply[0]]), logger=self.logger )
             return reply[0]
         return -1
 
@@ -106,9 +106,9 @@ class PCA9505(GPIO.ExtGpio_base):
         portReg = self.IP_base +port
         reply = self._readRegister(portReg, 1)
         if reply != -1:
-            printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), v=self.v)
+            printf('%s: PORT%d = 0x%02x (%s)', par=(self.ID, port, reply[0], bin(reply[0])), logger=self.logger )
             return reply[0]
-        printf('%s: PORT%d-Get: Error', par=(self.ID, port), v=self.v)
+        printf('%s: PORT%d-Get: Error', par=(self.ID, port), logger=self.logger )
         return -1
 
 ### Pin level API
@@ -116,7 +116,7 @@ class PCA9505(GPIO.ExtGpio_base):
         """Set the direction of an individual pin"""
         port, pVal = self._setPin(pin, mode)
         reply = self.setPortMode(port, pVal)
-        printf('%s: BANK%d<%d> <-- %d - %s', par=(self.ID, port, pin, pVal, self.RES[reply]), v=self.v)
+        printf('%s: BANK%d<%d> <-- %d - %s', par=(self.ID, port, pin, pVal, self.RES[reply]), logger=self.logger )
         return reply
 
     def _setPin(self, pin, val) -> int:
@@ -136,7 +136,7 @@ class PCA9505(GPIO.ExtGpio_base):
         for val in valList:
             port, pVal = self._setPin(pin, val)
             reply = self.setPort(port, pVal)
-            printf('%s: PORT%d<%d> <-- %d - %s', par=(self.ID, port, pin, val, self.RES[reply]), v=self.v)
+            printf('%s: PORT%d<%d> <-- %d - %s', par=(self.ID, port, pin, val, self.RES[reply]), logger=self.logger )
             pin += 1
         return reply
 
@@ -153,20 +153,21 @@ class PCA9505(GPIO.ExtGpio_base):
             if reply != -1:
                 reply = (reply>>_pin)&1
             result.append(reply)
-            printf('%s: <%d> (PORT%d<%d>) = %d', par=(self.ID, pin, _port, _pin, reply), v=self.v)
+            printf('%s: <%d> (PORT%d<%d>) = %d', par=(self.ID, pin, _port, _pin, reply), logger=self.logger )
         return result
 
-def printf(text, par=(), data='', v=True, _file=False):
-    PrintLine = text % par
-    PrintLine += str(data) +' '
-    
-    if PrintLine[-1]=='\n':
-        PrintLine = PrintLine[:-1]
-    if v:
-        print(PrintLine)
-    if (_file):
-        if (_file.closed == False):
-            _file.write(PrintLine+'\n')
+def printf(text, par=(), data='', logger=None):
+    if logger != None:
+        PrintLine = text % par
+        PrintLine += str(data) +' '
+        
+        if PrintLine[-1]=='\n':
+            PrintLine = PrintLine[:-1]
+            print(PrintLine)
+            self.logger.debug(PrintLine)
+    ##    if (_file):
+    ##        if (_file.closed == False):
+    ##            _file.write(PrintLine+'\n')
 
 if __name__ == "__main__":
     gpio = PCA9505()

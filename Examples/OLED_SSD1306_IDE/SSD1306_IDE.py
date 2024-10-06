@@ -9,7 +9,7 @@ Date: 07/July/2023
 """
 
 #Basic modules to load
-import time
+import time, logging
 from GSOF_ArduBridge import ArduBridge
 from GSOF_ArduBridge.device import SSD1306_class
 from TestScripts import testScripts

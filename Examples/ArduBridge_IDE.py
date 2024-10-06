@@ -9,6 +9,7 @@ Date: 18/Apr/2023
 """
 
 #Basic modules to load
+import logging
 from GSOF_ArduBridge import ArduBridge
 from GSOF_ArduBridge import ArduShield_Uno
 
