@@ -121,11 +121,17 @@ class ArduBridgeGPIO():
             t += DT
             srvP = P0 +p
             if P0 > P1:
-                srvP = P0 -p
-                
-            self.servoWrite(pin, int(srvP))
+                srvP = int(P0 -p)
+
             if self.logger != None:
                 self.logger.debug("%1.2f, %1.3f" % (t, srvP))  
+
+            if srvP < 0:
+                srvP = 0
+            elif srvP > 255:
+                srvP = 255
+                
+            self.servoWrite(pin, srvP)
             time.sleep(DT)
 
     def pinPulse(self, pin, onTime):
