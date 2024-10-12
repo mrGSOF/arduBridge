@@ -58,7 +58,7 @@ class PCF8574():
     def getPort(self) -> int:
         """Returns a single byte that captures the current state of all of the device's input pins"""
         ##self._i2c.read(self._address, self._port)
-        val = self.i2c.readRaw(self.dev, 1)
+        val = self.i2c.readRaw(self.dev, 1)[0]
         return val
 
     def setPort(self, val) -> None:
@@ -68,7 +68,7 @@ class PCF8574():
     def getPin(self, pin) -> int:
         """Reads the current state of a single input pin and returns it as a 0 or 1"""
         pin = self._checkPin(pin)
-        post = self.getPort()
+        port = self.getPort()
         if (port&(1<<pin)) != 0:
             return  1
         return 0
@@ -81,7 +81,7 @@ class PCF8574():
         """Sets the state of a single output pin to either 0 or 1"""
         pin = self._checkPin(pin)
         pin_mask = (1<<pin)
-        port = self._read()
+        port = self.getPort()
         if port&pin_mask != val:
             port &= (~pin_mask)
             port |= ((val&1)<<pin)
