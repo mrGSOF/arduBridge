@@ -33,6 +33,7 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 import sys, time
+import serial.tools.list_ports as listPorts
 import logging
 from GSOF_ArduBridge import BridgeSerial
 from GSOF_ArduBridge import ArduAnalog
@@ -41,8 +42,15 @@ from GSOF_ArduBridge import ArduI2C
 from GSOF_ArduBridge import ArduSPI
 from GSOF_ArduBridge import ArduPulseAndSample as CAP
 
+def findArduCom(lookFor="Arduino"):
+    ports = listPorts.comports()
+    for port in ports:
+        if lookFor in port.description:
+            return port.device
+    return None
+
 class ArduBridge():
-    def __init__(self, COM='COM9', baud=115200*2, logger=None, logLevel=logging.INFO, fileHandler=False, consoleHandler=True, RxTimeOut=0.015):
+    def __init__(self, COM="auto", baud=115200*2, logger=None, logLevel=logging.INFO, fileHandler=False, consoleHandler=True, RxTimeOut=0.015):
 
         version = 'v1.1 running on Python %s'%(sys.version[0:5])
         self.logger = logger
@@ -50,8 +58,16 @@ class ArduBridge():
             self.logger = self._initLogger(logLevel=logLevel, fileHandler=fileHandler, consoleHandler=consoleHandler)
         self.logger.info('GSOF_ArduBridge %s'%(version))
         self.ExtGpio = [0,0]
-        self.COM  = COM
-        self.comm = BridgeSerial.ArduBridgeComm( COM=COM, baud=baud, logger=self.logger, RxTimeOut=RxTimeOut )
+        self.COM = COM
+        if self.COM == "auto":
+            self.COM = findArduCom(lookFor="Arduino")
+            if self.COM == None:
+                raise Exception("Couldn't find arduio, try to manualy specify its port.")
+            else:
+                if self.logger != None:
+                    self.logger.info(f"Arduino on port '{self.COM}' is being used.")
+
+        self.comm = BridgeSerial.ArduBridgeComm( COM=self.COM, baud=baud, logger=self.logger, RxTimeOut=RxTimeOut )
         self.gpio = ArduGPIO.ArduBridgeGPIO( bridge=self.comm, logger=self.logger )
         self.an   = ArduAnalog.ArduBridgeAn(bridge=self.comm, logger=self.logger )
         self.i2c  = ArduI2C.ArduBridgeI2C( bridge=self.comm, logger=self.logger)
