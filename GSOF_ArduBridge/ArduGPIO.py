@@ -66,6 +66,9 @@ class ArduBridgeGPIO():
         return reply[0]
 
     def digitalWrite(self, pin, val):
+        return self.setPin(pin, val)
+
+    def setPin(self, pin, val):
         """Set the Arduino's pin state (either 0 or 1)"""
         val = int(val)
         if (val != 0):
@@ -79,6 +82,9 @@ class ArduBridgeGPIO():
         return reply[0]
 
     def digitalRead(self, pin):
+        return self.getPin(pin)
+
+    def getPin(self, pin):
         """Returns the Arduino's pin state (either 0 or 1)"""
         if (pin < 0x1b):
             vDat = [ord('I'), pin]
