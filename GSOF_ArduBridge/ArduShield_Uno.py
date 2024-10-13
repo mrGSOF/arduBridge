@@ -68,9 +68,9 @@ class ArduBridge_Shield():
         """Set the servo angle"""
         return self.ardu.gpio.servoWrite( self.servoCh[ch], val)
 
-    def servoScurve(self, ch, P0, P1, acc=200, DT=0.05):
+    def servoScurve(self, ch, p0, p1, acc=200, dt=0.05):
         """Smooth transition from P0 to P1 at acceleration"""
-        return self.ardu.gpio.servoScurve( self.servoCh[ch], P0, P1, acc)
+        return self.ardu.gpio.servoScurve( self.servoCh[ch], p0, p1, acc, dt)
 
     def pwmMode(self, ch, on):
         """ """

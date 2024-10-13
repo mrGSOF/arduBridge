@@ -33,6 +33,7 @@ __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
 import time
+from GSOF_ArduBridge import S_Curve
 
 class ArduBridgeGPIO():
     OUTPUT = 0 #< To set the pin to digital output mode
@@ -103,36 +104,21 @@ class ArduBridgeGPIO():
             self.logger.debug(f"SERVO AT PIN<{pin}>: {val} - {self.RES[reply[0]]}")
         return reply[0]
 
-    def servoScurve(self, pin, P0, P1, acc=200, DT=0.05):
+    def servoScurve(self, pin, p0, p1, acc=200, dt=0.05):
         """Smooth transition from P0 to P1 at acceleration"""
-        acc = abs(acc)
-        DP = abs(P1-P0)
-
-        p = 0
-        v = 0
         t = 0
-        while p < DP:
-            if p < (DP/2):
-                p += v*DT +0.5*acc*DT**2
-                v += acc*DT
-            else:
-                p += v*DT -0.5*acc*DT**2
-                v -= acc*DT
-            t += DT
-            srvP = P0 +p
-            if P0 > P1:
-                srvP = int(P0 -p)
+        points = S_Curve.solve(p0=p0, p1=p1, acc=acc, dt=dt)
+        for point in points:
+            if point < 0:
+                point = 0
+            elif point > 255:
+                point = 255
 
+            self.servoWrite(pin, point)
             if self.logger != None:
-                self.logger.debug("%1.2f, %1.3f" % (t, srvP))  
-
-            if srvP < 0:
-                srvP = 0
-            elif srvP > 255:
-                srvP = 255
-                
-            self.servoWrite(pin, srvP)
-            time.sleep(DT)
+                t += dt
+                self.logger.debug("%1.2f, %1.3f" % (t, point))  
+            time.sleep(dt)
 
     def pinPulse(self, pin, onTime):
         """Pulse the the specific pin# on the arduino GPO"""
