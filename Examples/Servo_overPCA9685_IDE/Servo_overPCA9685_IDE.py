@@ -19,8 +19,8 @@ def close():
     ardu.OpenClosePort(0)
     print('COM port is closed')
 
-def test(pwmCh, N=2, acc=0.0008, dt=0.05):
-    srv = Servo.Servo(setServo=pwm.setPulseWidth, ch=4, minPosition=0.001, maxPosition=0.002)
+def test(ch, N=2, acc=0.0008, dt=0.05):
+    srv = Servo.Servo(setServo=pwm.setPulseWidth, ch=ch, minPosition=0.001, maxPosition=0.002)
     for i in range(0,N):
         srv.servoScurve(p0=0.0015, p1=0.0020, acc=acc, dt=dt)
         srv.servoScurve(p0=0.0020, p1=0.0015, acc=acc, dt=dt)
