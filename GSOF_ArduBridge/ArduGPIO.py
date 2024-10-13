@@ -32,7 +32,7 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
-import time
+import time, math
 from GSOF_ArduBridge import S_Curve
 
 class ArduBridgeGPIO():
@@ -110,7 +110,7 @@ class ArduBridgeGPIO():
             self.logger.debug(f"SERVO AT PIN<{pin}>: {val} - {self.RES[reply[0]]}")
         return reply[0]
 
-    def servoScurve(self, pin, p0, p1, acc=200, dt=0.05):
+    def servoScurve(self, pin, p0, p1, acc=200, dt=0.05) -> int:
         """Smooth transition from P0 to P1 at acceleration"""
         t = 0
         points = S_Curve.solve(p0=p0, p1=p1, acc=acc, dt=dt)
@@ -125,8 +125,20 @@ class ArduBridgeGPIO():
                 t += dt
                 self.logger.debug("%1.2f, %1.3f" % (t, point))  
             time.sleep(dt)
+        return 1
 
-    def pinPulse(self, pin, onTime):
+    def servoScurveDirect(self, pin, p0, p1, acc=200, dt=0.05, blocking=True) -> int:
+        """Smooth transition from P0 to P1 at acceleration"""
+        self.comm.send( (ord('s'), int(pin), int(p0), int(p1), int(acc/10), int(dt*1000)) )
+        reply = [0] #self.comm.receive(1)
+        sleepTime = 2*math.sqrt(abs(p1-p0)/acc)
+        if self.logger != None:
+            self.logger.debug(f"SERVO AT PIN<{pin}>: {p1} {sleepTime} sec")
+        if (blocking == True) and (sleepTime > 0.02):
+            time.sleep(sleepTime -0.01)
+        return sleepTime
+ 
+    def pinPulse(self, pin, onTime) -> int:
         """Pulse the the specific pin# on the arduino GPO"""
         self.digitalWrite(pin, 1)
         time.sleep(onTime)

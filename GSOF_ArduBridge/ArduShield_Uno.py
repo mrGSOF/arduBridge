@@ -72,6 +72,10 @@ class ArduBridge_Shield():
         """Smooth transition from P0 to P1 at acceleration"""
         return self.ardu.gpio.servoScurve( self.servoCh[ch], p0, p1, acc, dt)
 
+    def servoScurveDirect(self, ch, p0, p1, acc=200, dt=0.05, blocking=True):
+        """Smooth transition from P0 to P1 at acceleration"""
+        return self.ardu.gpio.servoScurveDirect( self.servoCh[ch], p0, p1, acc, dt, blocking)
+
     def pwmMode(self, ch, on):
         """ """
         if on:
