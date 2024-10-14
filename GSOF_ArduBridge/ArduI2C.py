@@ -127,7 +127,7 @@ class ArduBridgeI2C():
         reply = self.comm.receive(1)        #1st byte is how many bytes where read
         if reply[0] != 0:
             n = reply[1][0]
-            reply = self.comm.receive(n)    #Read n bytes
+            reply = self.comm.receive(n, reset=False) #Read n bytes
             if reply[0] != 0:
                 val = reply[1]
                 if self.logger != None:
@@ -189,7 +189,7 @@ class ArduBridgeI2C():
                 err = False
                 if delay > 0.0:
                     time.sleep(delay)               #< DELAY BETWEEN WRITE COMMAND AND READ SEQUENCE
-                self.comm.send(vRd)                 #< Send the read command
+                self.comm.send(vRd, reset=False)    #< Send the read command
                     
         if err == False:
             reply = self.comm.receive(1)        #< The number of bytes that where read
