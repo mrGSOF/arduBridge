@@ -49,12 +49,12 @@ if __name__ == "__main__":
 
     led = blinkM_class.BlinkM(i2c=ardu.i2c, dev=0x0) #< Broadcase to any device (default 0x9)
 
+    print("led.getDevAddress()")
     print("led.getVersion()")
     print("led.stop()")
     print("led.play()")
     print("led.off()")
     print("led.setRgb(red=50, green=0, blue=0)")
     print("led.getRgb()")
-    print("led.fadeToRgb(red=0x40, green=0x40, blue=0x40)")
-    print("led.brightness(3) #< 0 to 7")
+    print("led.fadeToRgb(red=0x40, green=0x40, blue=0x40, rate=2)")
     print("test(N=1)")
