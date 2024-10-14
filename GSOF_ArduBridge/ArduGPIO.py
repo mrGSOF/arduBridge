@@ -56,7 +56,7 @@ class ArduBridgeGPIO():
         if (mode > self.LAST_MODE):
             raise ValueError("Invalid mode value, exceeded maximum value")
         if (pin < 112):
-            vDat = [ord('D'), pin, mode]
+            vDat = (ord('D'), pin, mode)
             #print(str(vDat))
             self.comm.send(vDat)
         reply = self.comm.receive(1)
@@ -74,7 +74,7 @@ class ArduBridgeGPIO():
         if (val != 0):
             val = 1
         if (pin < 0x1b):
-            vDat = [ord('O'), pin, val]
+            vDat = (ord('O'), pin, val)
             self.comm.send(vDat)
         reply = self.comm.receive(1)
         if self.logger != None:
@@ -87,7 +87,7 @@ class ArduBridgeGPIO():
     def getPin(self, pin):
         """Returns the Arduino's pin state (either 0 or 1)"""
         if (pin < 0x1b):
-            vDat = [ord('I'), pin]
+            vDat = (ord('I'), pin)
             self.comm.send(vDat)
         reply = self.comm.receive(1)
         if reply[0]:
@@ -103,7 +103,7 @@ class ArduBridgeGPIO():
         """Set the angle of a servo motor attached to a digital pin (an integer from 0 to 255)"""
         val = int(val)
         pin = int(pin)
-        vDat = [ord('S'), pin, val]
+        vDat = (ord('S'), pin, val)
         self.comm.send(vDat)
         reply = self.comm.receive(1)
         if self.logger != None:

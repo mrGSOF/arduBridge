@@ -75,7 +75,7 @@ class ArduBridgeComm():
         else:
             self.uart_wr( bytes([self.RST]) )
         
-    def send(self, vDat) -> None:
+    def send(self, vDat, reset=True) -> None:
         """Send list of bytes over the serial link"""
         self.semaTX.acquire()
         if ( self.LINK == True):
@@ -89,7 +89,10 @@ class ArduBridgeComm():
                     pass
 
             if self.pyVer < 3.0:
-                vStr = ''
+                if reset == True:
+                    vStr = chr(self.RST)
+                else:
+                    vStr = ''
                 for c in vDat:
                     if ( (c == self.ESC) or (c == self.RST) ):
                         swap_c = ((c&0xf)<<4) +((c>>4)&0xf)
@@ -98,7 +101,10 @@ class ArduBridgeComm():
                         vStr += ( chr(c) )
 
             else:
-                vStr = bytes()
+                if reset == True:
+                    vStr = bytes([self.RST])
+                else:
+                    vStr = bytes()
                 for c in vDat:
                     if ( (c == self.ESC) or (c == self.RST) ):
                         swap_c = ((c&0xf)<<4) +((c>>4)&0xf)
