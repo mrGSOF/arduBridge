@@ -14,23 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with GSOF_ArduBridge.  If not, see <https://www.gnu.org/licenses/>.
 """
-
-class Pin():
-    def __init__(self, gpio, pin):
-        self.pin = pin
-        self.gpio = gpio
-
-    def high(self):
-        self.gpio.setPin(self.pin, 1)
-        return self
-
-    def low(self):
-        self.gpio.setPin(self.pin, 0)
-        return self
-
-    def set(self, val):
-        self.gpio.setPin(self.pin, int(bool(val)))
-        return self
+from GSOF_ArduBridge.Pin_class import *
 
 class AD9833():
     def __init__(self, gpio, sdata, sclk, fsync, osci_hz=25e6):
