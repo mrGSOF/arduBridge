@@ -47,7 +47,11 @@ class ArduBridgeComm():
     ESC  = 0x5c #< Escape symbol
     CR   = 0x0d #< Carriage return
     LF   = 0x0a #< Linefeed
-    ERR  = -1
+
+    GOOD     = 1
+    ERR_BYTE = 0
+    ERR_LINK = -1
+    ERR_RST  = -2
 
     def __init__(self, COM, baud=115200*2, PortStatusReport=False, RxTimeOut = 0.015, writeTimeout=0.1, interByteTimeout=None, logger=None):
         self.pyVer = sys.version_info.major +sys.version_info.minor/10.0
@@ -136,39 +140,43 @@ class ArduBridgeComm():
         N = int(N)
         self.semaRX.acquire()
         vDat = [-1]*N
-        ERR = [self.ERR]
         if (self.LINK == True):
-            ERR = [0, vDat]
             i = 0
             while i<N:
                 c = self.getByte()
                 
                 if len(c) == 0:
                     self.semaRX.release()
-                    return ERR
+                    return (self.ERR_BYTE, vDat) #< Error missing bytes
                 c = ord(c)
                 
                 if c == self.ESC:
                     c = self.getByte()
-                    while len(c) == 0:
-                        time.sleep(0.1)
-                        c = self.getByte()
-                        #self.semaRX.release()
-                        #return ERR
+                    if len(c) == 0:
+                        self.semaRX.release()
+                        return (self.ERR_BYTE, vDat)
+
+                    elif c == self.RST:
+                        #print('Error - Received RST from Arduino-Bridge\n')
+                        self.semaRX.release()
+                        return (self.ERR_RST, vDat) #< In case of missing bytes, return (0, vDat)
+
                     c = ord(c)
                     c = ((c&0xf)<<4) +((c>>4)&0xf) #Swapping the value after ESC
                     
                 elif c == self.RST:
-                    print('Error - Received RST from Arduino-Bridge\n')
+                    #print('Error - Received RST from Arduino-Bridge\n')
                     self.semaRX.release()
-                    return ERR
+                    return (self.ERR_RST, vDat) #< In case of missing bytes, return (0, vDat)
+
                 vDat[i] = c
                 i += 1
             self.semaRX.release()
-            return [1, vDat]
+            return (self.GOOD, vDat) #< In case of all GOOD, return (1, vDat)
+
         print('Error - %s is closed'%(self.ser.port))
         self.semaRX.release()
-        return ERR
+        return (self.ERR_LINK,[]) #< In case of link error return (-1, ())
 
     def ReportLinkStatus(self, val) -> None:
         """Returns True is serial link is active"""

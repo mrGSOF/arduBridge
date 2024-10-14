@@ -90,14 +90,14 @@ class ArduBridgeGPIO():
             vDat = (ord('I'), pin)
             self.comm.send(vDat)
         reply = self.comm.receive(1)
-        if reply[0]:
+        if reply[0] > 0:
             val = reply[1][0]
             if self.logger != None:
                 self.logger.debug(f"DIN{pin}: {val}")
             return val
         if self.logger != None:
             self.logger.error(f"DIN{pin}: Error")
-        return -1
+        return reply[0]
 
     def servoWrite(self, pin, val):
         """Set the angle of a servo motor attached to a digital pin (an integer from 0 to 255)"""
