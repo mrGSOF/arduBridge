@@ -57,23 +57,26 @@ class ArduBridgeSPI():
             self.mode = -1
 
             #I2C protocol command
-            self.SPI_PACKET_ID = ord('3')
+            self.SPI_PACKET_ID     = ord('3')
             self.SPI_CFG_PACKET_ID = ord('4')
 
     def setOff(self, v=False):
         """Disable the SPI"""
         self.setMode(self.OFF, v=v)
 
-    def setMode(self, mode, v=False):
+    def setMode(self, mode, freq, v=False):
         """Set the mode of the SPI bus (MODE0..MODE3)"""
         modeDesc = ("SPI_MODE0:\nClock is normally low (CPOL = 0)\nData is sampled on the transition from low to high (leading edge) (CPHA = 0)",
                     "SPI_MODE1:\nClock is normally low (CPOL = 0)\nData is sampled on the transition from high to low (trailing edge) (CPHA = 1)",
                     "SPI_MODE2:\nClock is normally high (CPOL = 1)\nData is sampled on the transition from high to low (leading edge) (CPHA = 0)",
                     "SPI_MODE3:\nClock is normally high (CPOL = 1)\nData is sampled on the transition from low to high (trailing edge) (CPHA = 1)")
-        vDat = [self.SPI_CFG_PACKET_ID, mode]
+        freq  = int(freq/100)
+        freqL = freq&0xff
+        freqH = (freq>>8)&0xff
+        vDat = [self.SPI_CFG_PACKET_ID, mode, freqL, freqH]
         self.comm.send(vDat)
         reply = self.comm.receive(1) #Read the received bytes
-        if reply[0] != -1:      #did we received a byte
+        if reply[0] > 0:      #did we received a byte
             res = reply[1][0]  #if yes, read the result
             if v:
                 if mode < self.OFF:
