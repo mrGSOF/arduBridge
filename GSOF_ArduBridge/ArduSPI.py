@@ -86,6 +86,7 @@ class ArduBridgeSPI():
             self.mode = mode
         else:
             self.logger.error("Error setting the SPI mode\n")
+        return self
 
     def write_read(self, vByte):
         """Send and receive list of bytes (vByte) on the SPI bus. Returns a list of bytes"""
