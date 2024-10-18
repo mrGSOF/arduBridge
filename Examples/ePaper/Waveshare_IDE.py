@@ -5,7 +5,7 @@ To customize the environment to your needs. You will need to change
 the parameters in the "PARAMETER BLOCK" in the __main__ section
 
 By: Guy Soffer
-Date: 08/Mar/2021
+Date: 17/Oct/2024
 """
 
 #Basic modules to load
@@ -13,12 +13,11 @@ import time
 from GSOF_ArduBridge import ArduBridge
 from GSOF_ArduBridge import ArduShield_Uno
 from GSOF_ArduBridge.Pin_class import *
-
-from Modules import Waveshare_lib
-from Modules import epd4in2_class
-from Modules import epd2in7_class
-from TestScripts import epd2in7_demo
-from TestScripts import testScripts
+from GSOF_ArduBridge.device import epd2in7_class
+#from Modules import EPD_base
+#from Modules import epd4in2_class
+from TestScripts.epd_2in7_demo import *
+#from TestScripts import testScripts
 
 def close():
     ardu.OpenClosePort(0)
@@ -50,21 +49,21 @@ if __name__ == "__main__":
     ardu.gpio.pinMode(12,0) #< MISO
     ardu.gpio.pinMode(11,0) #< MOSI
     
-    # 264x176 display with hardware SPI:
-    disp1 = Waveshare_lib.Waveshare_264_176(rst  = Pin(ardu.gpio, 8 ).mode(Pin.OUTPUT).set(0).set,
-                                            cs   = Pin(ardu.gpio, 10).mode(Pin.OUTPUT).set(0).set,
-                                            dc   = Pin(ardu.gpio, 9 ).mode(Pin.OUTPUT).set(0).set,
-                                            busy = Pin(ardu.gpio, 7 ).mode(Pin.INPUT).get,
-                                            spi  = ardu.spi
-                                         )
-
-    # 400x300 display with hardware SPI:
-    disp2 = Waveshare_lib.Waveshare_400_300(rst  = Pin(ardu.gpio, 8 ).mode(Pin.OUTPUT).set(0).set,
-                                            cs   = Pin(ardu.gpio, 10).mode(Pin.OUTPUT).set(0).set,
-                                            dc   = Pin(ardu.gpio, 9 ).mode(Pin.OUTPUT).set(0).set,
-                                            busy = Pin(ardu.gpio, 7 ).mode(Pin.INPUT).get,
-                                            spi  = ardu.spi
-                                         )
+##    # 264x176 display with hardware SPI:
+##    disp1 = EPD_base.Waveshare_264_176(rst  = Pin(ardu.gpio, 8 ).mode(Pin.OUTPUT).set(0).set,
+##                                       cs   = Pin(ardu.gpio, 10).mode(Pin.OUTPUT).set(0).set,
+##                                       dc   = Pin(ardu.gpio, 9 ).mode(Pin.OUTPUT).set(0).set,
+##                                       busy = Pin(ardu.gpio, 7 ).mode(Pin.INPUT).get,
+##                                       spi  = ardu.spi
+##                                      )
+##
+##    # 400x300 display with hardware SPI:
+##    disp2 = EPD_base.Waveshare_400_300(rst  = Pin(ardu.gpio, 8 ).mode(Pin.OUTPUT).set(0).set,
+##                                       cs   = Pin(ardu.gpio, 10).mode(Pin.OUTPUT).set(0).set,
+##                                       dc   = Pin(ardu.gpio, 9 ).mode(Pin.OUTPUT).set(0).set,
+##                                       busy = Pin(ardu.gpio, 7 ).mode(Pin.INPUT).get,
+##                                       spi  = ardu.spi
+##                                       )
 
     epd = epd2in7_class.EPD(rst  = Pin(ardu.gpio, 8 ).mode(Pin.OUTPUT).set(0).set,
                             cs   = Pin(ardu.gpio, 10).mode(Pin.OUTPUT).set(0).set,
@@ -73,7 +72,8 @@ if __name__ == "__main__":
                             spi  = ardu.spi
                            )
 
-    test = testScripts.test(disp=disp1)
-        
-    test.printHelp()
-    test.config()
+##    test = testScripts.test(disp=disp1)
+##        
+##    test.printHelp()
+##    test.config()
+print ("demo(epd, test=(1,3))")

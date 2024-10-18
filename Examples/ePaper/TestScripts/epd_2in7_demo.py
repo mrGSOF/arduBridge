@@ -1,29 +1,27 @@
-#!/usr/bin/python
-# -*- coding:utf-8 -*-
 import sys, os
-picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'pic')
-libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib')
-if os.path.exists(libdir):
-    sys.path.append(libdir)
 
 import logging, time
 from PIL import Image,ImageDraw,ImageFont
 import traceback
 
 
-def demo(epd):
+def demo(epd, test=None):
+    picdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pic')
+    fontFile = os.path.join(picdir, 'Font.ttc')
+    print(fontFile)
+    font24 = ImageFont.truetype(fontFile, 24)
+    font18 = ImageFont.truetype(fontFile, 18)
+    font35 = ImageFont.truetype(fontFile, 35)
+
     logging.basicConfig(level=logging.DEBUG)
     logging.info("epd2in7 Demo")
-    try:    
+    try:
+    
         logging.info("init and Clear")
         epd.init()
-        epd.Clear()
+        epd.clear()
         
-        font24 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 24)
-        font18 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18)
-        font35 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 35)
-
-        if(0):
+        if (1 in test) or (test==None):
             # Drawing on the Horizontal image
             logging.info("1.Drawing on the Horizontal image...")
             Himage = Image.new('1', (epd.height, epd.width), 255)  #< clear the frame with 255
@@ -45,11 +43,10 @@ def demo(epd):
 
             time.sleep(1) #< -------------
 
-        if(1):
+        if (2 in test) or (test==None):
             logging.info("Partial refresh")
             image = Image.new('1', (epd.height, epd.width), 0)  #< clear the frame with 0
             draw = ImageDraw.Draw(image)
-
 
             color = 1
             x = 16
@@ -58,7 +55,7 @@ def demo(epd):
             dy = 48
             draw.rectangle((x, y, x+dx, y+dy), fill = color^1)
             draw.text((x, y), "Partial Refresh" , font = font35, fill = color)
-            epd.EPD_2IN7_PartialDisplay(x, y, x+dy, y+dy, epd.getbuffer(image))
+            epd.partialDisplay(x, y, x+dy, y+dy, epd.getbuffer(image))
 
             y = 0
             r = 24
@@ -78,7 +75,7 @@ def demo(epd):
 
             time.sleep(1) #< -------------
 
-        if(1):
+        if (3 in test) or (test==None):
             logging.info("Gray scale circuils")
             epd.Init_4Gray()
             image = Image.new('L', (epd.height, epd.width), epd.GRAY1)  #< clear the frame with 0
@@ -96,15 +93,15 @@ def demo(epd):
                 x += dx
 
             logging.info("Read bmp file on window")
-            bmp = Image.open(os.path.join(picdir, '100x100.bmp'))
+            bmp = Image.open(os.path.join(picdir, 'GSOF.bmp'))
             image.paste(bmp, (70, 70))
 
             epd.display_4Gray(epd.getbuffer_4Gray(image))
 
             time.sleep(1) #< -------------
      
-        if(1):
-            epd.Clear()
+        if (4 in test) or (test==None):
+            epd.clear()
             image = Image.new('1', (epd.width, epd.height), 0)  # 255: clear the frame
             draw = ImageDraw.Draw(image)
             print("Support for partial refresh, but the refresh effect isn't good and it's not recommended")
@@ -112,7 +109,7 @@ def demo(epd):
                 draw.rectangle((8, 80, 44, 155), fill = 0)
                 draw.text((8, 80), str(j) , font = font35, fill = 1)
                 draw.text((8, 120), str(20-j) , font = font35, fill = 1)
-                epd.EPD_4IN2_PartialDisplay(8, 80, 44, 155, epd.getbuffer(image))
+                epd.partialDisplay(8, 80, 44, 155, epd.getbuffer(image))
                 print(j)
                 time.sleep(0.2);
 
@@ -124,6 +121,5 @@ def demo(epd):
         
     except KeyboardInterrupt:    
         logging.info("ctrl + c:")
-        epd4in2.epdconfig.module_exit()
         exit()
 
