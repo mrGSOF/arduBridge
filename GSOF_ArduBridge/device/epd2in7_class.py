@@ -15,13 +15,16 @@ logger = logging.getLogger(__name__)
 def delay_ms(ms):
     time.sleep(ms/1000)
 
+def split_list(alist, wanted_parts=1):
+    length = len(alist)
+    return [ alist[i*length // wanted_parts: (i+1)*length // wanted_parts] 
+             for i in range(wanted_parts) ]
 class EPD():
-    def __init__(self, rst, dc, busy, cs, spi):
+    def __init__(self, rst, dc, busy, out):
         self.rst = rst
         self.dc = dc
         self.busy = busy
-        self.cs = cs
-        self.spi = spi
+        self.out = out
         self.width = EPD_WIDTH
         self.height = EPD_HEIGHT
         self.pages = int(self.height/8 +0.5)
@@ -29,6 +32,7 @@ class EPD():
         self.GRAY2  = GRAY2
         self.GRAY3  = GRAY3 #gray
         self.GRAY4  = GRAY4 #Blackest
+
 
         self.lut_vcom_dc = [0x00, 0x00,
             0x00, 0x08, 0x00, 0x00, 0x00, 0x02,
@@ -141,9 +145,7 @@ class EPD():
     def command(self, cmd):
         """Send command byte"""
         self.dc(0)
-        self.cs(0)
-        self.spi.write_read( [cmd] )
-        self.cs(1)
+        self.out( [cmd] )
         return self
 
     def data(self, vDat):
@@ -151,34 +153,27 @@ class EPD():
         if type(vDat) == int:
             vDat = [vDat]
         self.dc(1)
-        for dat in vDat:
-            self.cs(0)
-            self.spi.write_read( [dat] )
-            self.cs(1)
+        lists = split_list(vDat, wanted_parts=int(len(vDat)/128 +1))
+        for ls in lists:
+            self.out( ls )
+        return self
         
     def waitWhileBusy(self):
         logger.debug("e-Paper busy")
         while(self.busy() == 0):      #  0: idle, 1: busy
-            delay_ms(200)                
+            delay_ms(100)                
         logger.debug("e-Paper busy release")
         return self
 
-    def clear(self, color=0xFF):
-        self.command(0x10).data( [color]*self.width*self.pages )
-        self.command(0x13).data( [color]*self.width*self.pages )
+    def clear(self, bw=0xff, red=0xff):
+        self.command(0x10).data( [bw]*self.width*self.pages )
+        self.command(0x13).data( [red]*self.width*self.pages )
         self.command(0x12).waitWhileBusy()
 
     def sleep(self):
-        self.command(0X50).data(0xf7)
-        self.command(0X02).command(0X07).data(0xA5)
-        delay_ms(2000)
-
-    def set_lut(self):
-        self.command(0x20).data(self.lut_vcom_dc)
-        self.command(0x21).data(self.lut_ww)      #< ww --
-        self.command(0x22).data(self.lut_bw)      #< bw r
-        self.command(0x23).data(self.lut_bb)      #< wb w
-        self.command(0x24).data(self.lut_wb)      #< bb b
+        self.command(0x50).data(0xf7)
+        self.command(0x02).command(0X07).data(0xA5)
+        #delay_ms(2000)
     
     def init(self):
         self.reset()
@@ -192,6 +187,10 @@ class EPD():
         
         self.command(0x06).data([0x07, 0x07, 0x17] ) #< BOOSTER_SOFT_START
         
+#        self.command(0xF8).data( [0x60,0xA5] ) #< Power optimization
+#        self.command(0xF8).data( [0x73,0x23] ) #< Power optimization
+#        self.command(0xF8).data( [0x7c,0x00] ) #< Power optimization
+
         self.command(0xF8).data( [0x60,0xA5] ) #< Power optimization
         self.command(0xF8).data( [0x89,0xA5] ) #< Power optimization
         self.command(0xF8).data( [0x90,0x00] ) #< Power optimization
@@ -200,14 +199,28 @@ class EPD():
         self.command(0xF8).data( [0xA1,0x00] ) #< Power optimization
         self.command(0xF8).data( [0x73,0x41] ) #< Power optimization
         
-        self.command(0x16).data(0x00) #< PARTIAL_DISPLAY_REFRESH
+        self.command(0x16).data(0x00)      #< PARTIAL_DISPLAY_REFRESH
+
+        self.command(0x01).data([0x03,0x00,0x2b,0x2b,0x09]) #< POWER SETTING SPI
+
         self.command(0x04).waitWhileBusy() #< POWER_ON
-        self.command(0x00).data(0xAF) #< PANEL_SETTING: KW-BF   KWR-AF    BWROTP 0f
-        self.command(0x30).data(0x3A) #< PLL_CONTROL: 3A 100HZ, 29 150Hz, 39 200HZ, 31 171HZ
-        self.command(0X50).data(0x57) #< VCOM AND DATA INTERVAL SETTING			
-        self.command(0x82).data(0x12) #< VCM_DC_SETTING_REGISTER
+        self.command(0x00).data(0xAF)      #< PANEL_SETTING: KW-BF   KWR-AF    BWROTP 0f
+        self.command(0x30).data(0x3A)      #< PLL_CONTROL: 3A 100HZ, 29 150Hz, 39 200HZ, 31 171HZ
+
+        self.command(0x61).data([0x00,0xb0,0x01,0x08]) #< Resolution setting
+
+        self.command(0x82).data(0x12)      #< VCM_DC_SETTING_REGISTER
+        self.command(0X50).data(0x57)      #< VCOM AND DATA INTERVAL SETTING			
+        #self.command(0X50).data(0x87)      #< VCOM AND DATA INTERVAL SETTING
         self.set_lut()
         return self
+
+    def set_lut(self):
+        self.command(0x20).data(self.lut_vcom_dc)
+        self.command(0x21).data(self.lut_ww)      #< ww --
+        self.command(0x22).data(self.lut_bw)      #< bw r
+        self.command(0x23).data(self.lut_bb)      #< wb w
+        self.command(0x24).data(self.lut_wb)      #< bb b 
 
     def display(self, image):
         bufferSize = self.width*self.pages
@@ -307,7 +320,7 @@ class EPD():
         return buf
     
     def display_4Gray(self, image):
-        self.command(0x10)
+        layer = [0]*5808
         for i in range(0, 5808): #5808*4  46464
             temp3=0
             for j in range(0, 2):
@@ -337,9 +350,10 @@ class EPD():
                     if(j!=1 or k!=1):				
                         temp3 <<= 1
                     temp1 <<= 2
-            self.data(temp3)
+            layer[i] = temp3
+        self.command(0x10).data(layer)
             
-        self.command(0x13)	       
+        layer = [0]*5808
         for i in range(0, 5808): #5808*4  46464
             temp3=0
             for j in range(0, 2):
@@ -369,7 +383,8 @@ class EPD():
                     if(j!=1 or k!=1):					
                         temp3 <<= 1
                     temp1 <<= 2
-            self.data(temp3)
+            layer[i] = temp3
+        self.command(0x13).data(layer)
         
         self.gray_SetLut()
         self.command(0x12)

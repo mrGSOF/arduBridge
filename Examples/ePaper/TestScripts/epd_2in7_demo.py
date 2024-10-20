@@ -1,8 +1,5 @@
-import sys, os
-
-import logging, time
+import os, time, logging
 from PIL import Image,ImageDraw,ImageFont
-import traceback
 
 
 def demo(epd, test=None):

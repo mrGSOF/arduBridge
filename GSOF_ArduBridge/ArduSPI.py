@@ -57,8 +57,10 @@ class ArduBridgeSPI():
             self.mode = -1
 
             #I2C protocol command
-            self.SPI_PACKET_ID     = ord('3')
-            self.SPI_CFG_PACKET_ID = ord('4')
+            self.SPI_PACKET_ID        = ord('3')
+            self.SPI_CFG_PACKET_ID    = ord('4')
+            self.SPI_CS_CFG_PACKET_ID = ord('5')
+            self.SPI_CS_PACKET_ID     = ord('6')
 
     def setOff(self, v=False):
         """Disable the SPI"""
@@ -76,8 +78,8 @@ class ArduBridgeSPI():
         vDat = [self.SPI_CFG_PACKET_ID, mode, freqL, freqH]
         self.comm.send(vDat)
         reply = self.comm.receive(1) #Read the received bytes
-        if reply[0] > 0:      #did we received a byte
-            res = reply[1][0]  #if yes, read the result
+        if reply[0] > 0:       #< Did we received a byte
+            res = reply[1][0]  #< If yes, read the result
             if v:
                 if mode < self.OFF:
                     self.logger.info(modeDesc[mode])
@@ -96,7 +98,39 @@ class ArduBridgeSPI():
         reply = self.comm.receive(len(vByte)) #Read the received bytes
   
         if self.logger != None:
-            if reply[0] != 0:      #did we received a byte
-                res = reply[1][0]  #if yes, read the result
+            if reply[0] != 0:      #< Did we received a byte
+                res = reply[1][0]  #< If yes, read the result
+                self.logger.debug(f"SPI-Res: {res}")
+        return reply
+
+    def cs_config(self, cs1, cs2, N):
+        """"""
+        self.comm.send( [self.SPI_CS_CFG_PACKET_ID, cs1&0xff, cs2&0xff, N] )
+        return self
+
+    def write_read_cs(self, vByte):
+        """Send and receive list of bytes (vByte) on the SPI bus. Returns a list of bytes"""
+        self.comm.send( [self.SPI_CS_PACKET_ID]+ vByte )
+
+        reply = self.comm.receive(len(vByte)) #Read the received bytes
+  
+        if self.logger != None:
+            if reply[0] != 0:      #< Did we received a byte
+                res = reply[1][0]  #< If yes, read the result
+                self.logger.debug(f"SPI-Res: {res}")
+        return reply
+
+    def config_write_read_cs(self, cs1, cs2, N, vByte):
+        """Send and receive list of bytes (vByte) on the SPI bus. Returns a list of bytes"""
+        if ( N != None ):
+            self.cs_config(cs1, cs2, N)
+        if ( vByte != None ):
+            self.comm.send( [self.SPI_CS_PACKET_ID]+ vByte )
+
+        reply = self.comm.receive(len(vByte)) #Read the received bytes
+  
+        if self.logger != None:
+            if reply[0] != 0:      #< Did we received a byte
+                res = reply[1][0]  #< If yes, read the result
                 self.logger.debug(f"SPI-Res: {res}")
         return reply
