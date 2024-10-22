@@ -43,6 +43,12 @@ __maintainer__ = ""
 __email__ = "gsoffer@yahoo.com"
 __status__ = "Production"
 
+def csLow(pin) -> int:
+    return pin
+
+def csHigh(pin) -> int:
+    return pin|0x80
+
 class ArduBridgeSPI():
     MODE0 = 0 #< Clock is normally low, Data is sampled on the transition from low to high (leading edge)
     MODE1 = 1 #< Clock is normally low, Data is sampled on the transition from high to low (trailing edge)
