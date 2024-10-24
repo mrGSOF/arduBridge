@@ -15,7 +15,7 @@ from GSOF_ArduBridge import ArduShield_Uno
 from GSOF_ArduBridge.Pin_class import *
 
 from Modules import EPD_base
-#from GSOF_ArduBridge.device import epd4in2_class
+from GSOF_ArduBridge.device import epd4in2_class
 from GSOF_ArduBridge.device import epd2in7_class
 from TestScripts.epd_2in7_demo import *
 from TestScripts import testScripts
@@ -43,16 +43,16 @@ if __name__ == "__main__":
     ardu.gpio.pinMode(13,0) #< SCLK
     ardu.gpio.pinMode(12,0) #< MISO
     ardu.gpio.pinMode(11,0) #< MOSI
-    ardu.gpio.pinMode(10,0) #< CS
+    cs   = Pin(ardu.gpio, 10).mode(Pin.OUTPUT).set(1)
+    rst  = Pin(ardu.gpio, 8 ).mode(Pin.OUTPUT).set(0).set
+    dc   = Pin(ardu.gpio, 9 ).mode(Pin.OUTPUT).set(0).set
+    busy = Pin(ardu.gpio, 7 ).mode(Pin.INPUT, invpolarity=False).get
 #    MODE0 = 0 #< Clock is normally low,  Data is sampled on the RISING  sclk edge and output on the FALLING sclk edge.
 #    MODE1 = 1 #< Clock is normally low,  Data is sampled on the FALLING sclk edge and output on the RISING  sclk edge.
 #    MODE2 = 2 #< Clock is normally high, Data is sampled on the FALLING sclk edge and output on the RISING  sclk edge.
 #    MODE3 = 3 #< Clock is normally high, Data is sampled on the RISING  sclk edge and output on the FALLING sclk edge.
-    ardu.spi.setMode(3, 1000000) #3
-    ardu.spi.cs_config(10,      #< Select low
-                       10|0x80, #< Release high
-                       1)       #< For every byte
-
+    ardu.spi.setMode(3, 500000)             #< SPI_MODE3
+##
 ##    # 264x176 display with hardware SPI:
 ##    disp1 = EPD_base.Waveshare_264_176(rst  = Pin(ardu.gpio, 8 ).mode(Pin.OUTPUT).set(0).set,
 ##                                       dc   = Pin(ardu.gpio, 9 ).mode(Pin.OUTPUT).set(0).set,
@@ -67,16 +67,31 @@ if __name__ == "__main__":
 ##                                       spi  = ardu.spi
 ##                                       )
 
-    epd = epd2in7_class.EPD(rst  = Pin(ardu.gpio, 8 ).mode(Pin.OUTPUT).set(0).set,
-                            dc   = Pin(ardu.gpio, 9 ).mode(Pin.OUTPUT).set(0).set,
-                            busy = Pin(ardu.gpio, 7 ).mode(Pin.INPUT, invpolarity=False).get,
-                            out  = ardu.spi.write_read_cs,
-                           )
+    epd27 = epd2in7_class.EPD(rst  = rst,
+                              dc   = dc,
+                              busy = busy,
+                              cs   = cs,
+                              out  = ardu.spi.config_write_read_cs,
+                             )
+
+    epd42 = epd4in2_class.EPD(rst  = rst,
+                              dc   = dc,
+                              busy = busy,
+                              cs   = cs,
+                              out  = ardu.spi.config_write_read_cs,
+                             )
 
 ##    test = testScripts.test(disp=disp1)
-##        
 ##    test.printHelp()
 ##    test.config()
-print ("epd.init()")
-print ("epd.clear(bw=0x00, red=0x00)")
-print ("demo(epd, test=(1,3))")
+print ("epd27.initBwr()")
+print ("epd27.clear(bw=0xff, red=0xff) #< White screen")
+print ("epd27.clear(bw=0xff, red=0x00) #< Red screen")
+print ("epd27.clear(bw=0x00, red=0x00) #< Black screen")
+print ("demo(epd27, test=(1,3))")
+print ("...")
+print ("epd42.initBwr()")
+print ("epd42.clear(bw=0xff, red=0xff) #< White screen")
+print ("epd42.clear(bw=0xff, red=0x00) #< Red screen")
+print ("epd42.clear(bw=0x00, red=0x00) #< Black screen")
+print ("demo(epd42, test=(1,3))")
