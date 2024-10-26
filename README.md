@@ -8,7 +8,7 @@ The ArduShield includes a dual H-bridge capable of driving DC motors, Thermo Ele
 In addition, the onboard 5V regulator eliminates the need to supply a precise voltage to drive the external peripherals and to prevent overloading the USB host.
     The ArduShield also includes connectors for easy connection of servos, analog sensors, General Input Output ports (GPIO), and devices over the Serial-Peripheral-Interface (SPI) or Inter-Integrated-Circuit I2C bus.
     Although the ArduShield can be used in various projects, it was initially designed to encapsulate the electronic circuits used in Digital-Microfluidics (DMF) setup. A unique feature of the shield is the capability to stack up additional extension boards (e.g., the Digital-Microfluidics (DMF) electrode driver) without the need for extra cables and workbench space. Another unique capability is its ability to measure the impedance between any DMF electrode and the Indium-Tin-Oxide (ITO) plate. This is extremely useful for detecting faults in droplets and estimating droplet size.
-![Alt text](./Documentation/basicHardwareSetup.png "Basic Hardwrae Setup")
+![Alt text](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/basicHardwareSetup.png "Basic Hardwrae Setup")
 
 # Installation and hardware setup
 The ArduBridge Python model is a pip package installation and the firmware that runs on the Arduino is installed by programming (also know as uploading).
@@ -18,7 +18,7 @@ To program the Arduino use the xloader application (https://github.com/xinabox/x
 2.	Select the COM port that the Arduino is connected to.
 3.	Select the Hex file "Bridge_Ctrl_V18.ino.hex" (or the most updated FW you have).
 4.	Press the "Upload" button and wait for the programming operation to finish after a few seconds.
-![Alt text](./Documentation/arduBridge_FW_upload.png "Firmware update")
+![Alt text](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/arduBridge_FW_upload.png "Firmware update")
 
 ## Python modules installation
 Before installing the ArduShield module, make sure Python 3.7 or above is installed (https://www.python.org/)
@@ -35,7 +35,7 @@ Installation of the ArduBridge can be done in two ways:
 # Documentation and example code
 A detailed [user manual](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/GSOF_ArduBridgeShield_UM.docx) can be found under the Documentation folder.
 [Code example](https://github.com/mrGSOF/arduBridge/tree/main/Examples) are present under the Example folder.
-![Alt text](./Documentation/codeTemplate.png "Basic Code Template")
+![Alt text](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/codeTemplate.png "Basic Code Template")
 
 Update the COM port in ArduBridge_IDE.py and run in interactive mode ("python -i ArduBridge_IDE.py")
 You can interact the Arduino using the ardu and ards objects (refer to the [tutorial](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/GSOF_ArduBridgeShield_UM.docx) for further information).
