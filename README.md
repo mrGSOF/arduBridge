@@ -16,7 +16,7 @@ The ArduBridge Python model is a pip package installation and the firmware that 
 To program the Arduino use the xloader application (https://github.com/xinabox/xLoader) and follow these steps:
 1.	Open the xloader application.
 2.	Select the COM port that the Arduino is connected to.
-3.	Select the Hex file "Bridge_Ctrl_V18.ino.hex" (or the most updated FW you have).
+3.	Select the Hex file "Bridge_Ctrl_V20.hex" (or the most updated FW you have).
 4.	Press the "Upload" button and wait for the programming operation to finish after a few seconds.
 ![Alt text](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/arduBridge_FW_upload.png "Firmware update")
 
@@ -33,12 +33,12 @@ Installation of the ArduBridge can be done in two ways:
 2.	By running the setup.py script in a command prompt ("CMD") window.
 
 # Documentation and example code
-A detailed [user manual](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/GSOF_ArduBridgeShield_UM.docx) can be found under the Documentation folder.
+A detailed [user manual](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/GSOF_ArduBridgeShield_UM.pdf) can be found under the Documentation folder.
 [Code example](https://github.com/mrGSOF/arduBridge/tree/main/Examples) are present under the Example folder.
 ![Alt text](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/codeTemplate.png "Basic Code Template")
 
 Update the COM port in ArduBridge_IDE.py and run in interactive mode ("python -i ArduBridge_IDE.py")
-You can interact the Arduino using the ardu and ards objects (refer to the [tutorial](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/GSOF_ArduBridgeShield_UM.docx) for further information).
+You can interact the Arduino using the ardu and ards objects (refer to the [tutorial](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/GSOF_ArduBridgeShield_UM.pdf) for further information).
  
 # Acknowledgements
 I want to thank the following beta testers for their valuable contributions in the developent of the ArduBridge program:

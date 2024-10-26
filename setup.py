@@ -27,16 +27,15 @@
 from setuptools import setup
 
 def readme():
-    with open('README.md') as f:
+    with open('README.md', 'r', encoding='utf-8') as f:
         return f.read()
-
-from setuptools import setup
 
 setup(
       name='GSOF_ArduBridge',
-      version='0.1',
+      version='0.11',
       description='Protocol stack to bridge between an Arduino and Python',
       long_description=readme(),
+      long_description_content_type='text/markdown',
       classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
