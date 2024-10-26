@@ -15,13 +15,13 @@ def demo(epd, test=None):
     try:
     
         logging.info("init and Clear")
-        epd.init()
+        epd.initBwr()
         epd.clear()
         
         if (1 in test) or (test==None):
             # Drawing on the Horizontal image
             logging.info("1.Drawing on the Horizontal image...")
-            Himage = Image.new('1', (epd.height, epd.width), 255)  #< clear the frame with 255
+            Himage = Image.new('1', epd.getResolution(), 255)  #< clear the frame with 255
             draw = ImageDraw.Draw(Himage)
             draw.text((10, 0), 'hello world', font = font24, fill = 0)
             draw.text((10, 20), '2.7inch e-Paper', font = font24, fill = 0)
@@ -36,13 +36,13 @@ def demo(epd, test=None):
 
             draw.rectangle((80, 50, 130, 100), fill = 0)
             draw.chord((200, 50, 250, 100), 0, 360, fill = 0)
-            epd.display(epd.getbuffer(Himage))
+            epd.displayBwr(epd.getBufferBwr(Himage))
 
             time.sleep(1) #< -------------
 
         if (2 in test) or (test==None):
             logging.info("Partial refresh")
-            image = Image.new('1', (epd.height, epd.width), 0)  #< clear the frame with 0
+            image = Image.new('1', epd.getResolution(), 0)  #< clear the frame with 0
             draw = ImageDraw.Draw(image)
 
             color = 1
@@ -52,7 +52,7 @@ def demo(epd, test=None):
             dy = 48
             draw.rectangle((x, y, x+dx, y+dy), fill = color^1)
             draw.text((x, y), "Partial Refresh" , font = font35, fill = color)
-            epd.partialDisplay(x, y, x+dy, y+dy, epd.getbuffer(image))
+            epd.displayPartial(x, y, x+dy, y+dy, epd.getbuffer(image))
 
             y = 0
             r = 24
@@ -66,7 +66,7 @@ def demo(epd, test=None):
                     draw.rectangle((x, y, y+dy, y+dy), fill = color^1)
                     draw.chord((x, y, x+d, y+d), 0, 360, fill = color)
                     draw.text((x+5, y+10), "%dx%d"%(iX,iY) , font = font18, fill = color^1)
-                    epd.EPD_2IN7_PartialDisplay(x, y, x+dy, y+dy, epd.getbuffer(image))
+                    epd.displayPartial(x, y, x+dy, y+dy, epd.getbuffer(image))
                     x += dx
                 y += dy
 
@@ -74,9 +74,13 @@ def demo(epd, test=None):
 
         if (3 in test) or (test==None):
             logging.info("Gray scale circuils")
-            epd.Init_4Gray()
-            image = Image.new('L', (epd.height, epd.width), epd.GRAY1)  #< clear the frame with 0
+            epd.init4Gray()
+            image = Image.new('L', epd.getResolution(), epd.GRAY1)  #< clear the frame with 0
             draw = ImageDraw.Draw(image)
+
+            logging.info("Read bmp file on window")
+            bmp = Image.open(os.path.join(picdir, 'demo.jpg'))
+            image.paste(bmp, (0, 20))
 
             x = 50
             y = 10
@@ -91,22 +95,22 @@ def demo(epd, test=None):
 
             logging.info("Read bmp file on window")
             bmp = Image.open(os.path.join(picdir, 'GSOF.bmp'))
-            image.paste(bmp, (70, 70))
+            image.paste(bmp, (0, 0))
 
-            epd.display_4Gray(epd.getbuffer_4Gray(image))
+            epd.display4Gray(epd.getBuffer4Gray(image))
 
             time.sleep(1) #< -------------
      
         if (4 in test) or (test==None):
             epd.clear()
-            image = Image.new('1', (epd.width, epd.height), 0)  # 255: clear the frame
+            image = Image.new('1', epd.getResolution(), 0)  # 255: clear the frame
             draw = ImageDraw.Draw(image)
             print("Support for partial refresh, but the refresh effect isn't good and it's not recommended")
             for j in range(0, int(20)):
                 draw.rectangle((8, 80, 44, 155), fill = 0)
                 draw.text((8, 80), str(j) , font = font35, fill = 1)
                 draw.text((8, 120), str(20-j) , font = font35, fill = 1)
-                epd.partialDisplay(8, 80, 44, 155, epd.getbuffer(image))
+                epd.displayPartial(8, 80, 44, 155, epd.getbuffer(image))
                 print(j)
                 time.sleep(0.2);
 

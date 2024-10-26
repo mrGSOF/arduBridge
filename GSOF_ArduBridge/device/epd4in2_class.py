@@ -1,6 +1,6 @@
 
 import time, logging
-from GSOF_ArduBridge.arduSPI import csLow, csHigh
+from GSOF_ArduBridge.ArduSPI import csLow, csHigh
 #from PIL import Image
 
 # Display resolution
@@ -24,15 +24,16 @@ def split_list(alist, wanted_parts=1):
              for i in range(wanted_parts) ]
 
 class EPD:
-    def __init__(self, rst, dc, busy, out):
-        self.rst  = rst
-        self.dc   = dc
-        self.busy = busy
-        self.cs   = cs
-        self.out  = out
-        self.width = EPD_WIDTH
+    def __init__(self, rst, dc, busy, cs, out, landscape=False):
+        self.rst    = rst
+        self.dc     = dc
+        self.busy   = busy
+        self.cs     = cs
+        self.out    = out
+        self.width  = EPD_WIDTH
         self.height = EPD_HEIGHT
-        self.pages = int(self.height/8 +0.5)
+        self.pages  = int((self.width/8) +0.5)
+        self.landscape = landscape
         self.GRAY1  = GRAY1 #white
         self.GRAY2  = GRAY2
         self.GRAY3  = GRAY3 #gray
@@ -193,7 +194,7 @@ class EPD:
         """Send command byte"""
         self.dc(0)
         cs = self.cs.pin
-        self.out( cs1=csLow(cs), cs2=csHigh(cs), N=1, vBytes=[cmd] )
+        self.out( cs1=csLow(cs), cs2=csHigh(cs), N=1, vByte=[cmd] )
         return self
 
     def data(self, vDat):
@@ -204,7 +205,7 @@ class EPD:
         cs = self.cs.pin
         lists = split_list(vDat, wanted_parts=int(len(vDat)/128 +1))
         for ls in lists:
-            self.out( cs1=csLow(cs), cs2=csHigh(cs), N=1, vBytes=ls )
+            self.out( cs1=csLow(cs), cs2=csHigh(cs), N=1, vByte=ls )
         return self
 
     def waitWhileBusy(self):
@@ -215,14 +216,28 @@ class EPD:
         return self
 
     def clear(self, bw=0xff, red=0xff):
-        self.command(0x10).data( [bw]*self.width*self.pages )
-        self.command(0x13).data( [red]*self.width*self.pages )
+        frameSize = self.height*self.pages
+        self.command(0x10).data( [bw]*frameSize )
+        self.command(0x13).data( [red]*frameSize )
         self.command(0x12).waitWhileBusy()
 
     def sleep(self):
         self.command(0x02).waitWhileBusy() # POWER_OFF
-        self.command(0x07).data(0xA5) # DEEP_SLEEP
+        self.command(0x07).data(0xA5)      # DEEP_SLEEP
         return self
+
+    def getResolution(self) -> list:
+        if self.landscape == False:
+            return (self.width, self.height)
+        else:
+            return (self.height, self.width)
+
+    def _getResolutionBytes(self) -> list:
+        resXLsb = 0xff&(self.width)
+        resXMsb = 0xff&(self.width>>8)
+        resYLsb = 0xff&(self.height)
+        resYMsb = 0xff&(self.height>>8)
+        return [resXMsb,resXLsb, resYMsb,resYLsb]
 
     def initBwr(self):
         self.reset()
@@ -237,10 +252,11 @@ class EPD:
         self.command(0x04).waitWhileBusy()             # POWER_ON
         self.command(0x00).data([0xbf, 0x0d])          # panel setting KW-BF   KWR-AF  BWROTP 0f
         self.command(0x30).data(0x3c)                  # PLL setting 3A 100HZ   29 150Hz 39 200HZ  31 171HZ
-        self.command(0x61).data([0x01,0x90,0x01,0x2c]) # resolution setting
+        #self.command(0x61).data([0x01,0x90,0x01,0x2c]) # resolution setting
+        self.command(0x61).data( self._getResolutionBytes() )
         self.command(0x82).data(0x28)	               # vcom_DC setting
 
-        self.command(0X50)  # VCOM AND DATA INTERVAL SETTING
+        self.command(0x50)  # VCOM AND DATA INTERVAL SETTING
         self.data(0x97)     # 97white border 77black border VBDF 17|D7 VBDW 97 VBDB 57 VBDF F7 VBDW 77 VBDB 37 VBDR B7
     
         self.setBwrLut()
@@ -253,31 +269,36 @@ class EPD:
         self.command(0x24).data(self.lut_wb)      #< bb b 
 
     def displayBwr(self, image):
-        bufferSize = self.width*self.pages
-        img = image[0:bufferSize +1]
+        frameSize = self.height*self.pages
+        img = image[0:frameSize +1]
         self.setBwrLut();
-        self.command(0x10).data( [0xFF]*bufferSize )
+        self.command(0x10).data( [0xFF]*frameSize )
         self.command(0x13).data(img)
         self.command(0x12).waitWhileBusy()
 
     def getBufferBwr(self, image):
-        buf = [0xFF] * (int(self.width/8) * self.height)
+        buf = [0xFF]*self.pages*self.height #< Start with white screen
         image_monocolor = image.convert('1')
         imwidth, imheight = image_monocolor.size
         pixels = image_monocolor.load()
-        if(imwidth == self.width and imheight == self.height):
+        WHITE, BLACK = (0,1)
+        
+        if (imwidth==self.width) and (imheight==self.height) and (self.landscape==False):
             for y in range(imheight):
                 for x in range(imwidth):
                     # Set the bits for the column of pixels at the current position.
-                    if pixels[x, y] == 0:
-                        buf[int((x + y * self.width) / 8)] &= ~(0x80 >> (x % 8))
-        elif(imwidth == self.height and imheight == self.width):
+                    
+                    if pixels[x, y] == WHITE:
+                        buf[int((x + y*self.width) / 8)] &= ~(0x80 >> (x%8))
+        elif (imwidth==self.height) and (imheight==self.width) and (self.landscape==True):
             for y in range(imheight):
                 for x in range(imwidth):
                     newx = y
                     newy = self.height - x - 1
-                    if pixels[x, y] == 0:
+                    if pixels[x, y] == BLACK:
                         buf[int((newx + newy*self.width) / 8)] &= ~(0x80 >> (y % 8))
+        else:
+            print("Incorrect resolution. Got (%d,%d) vs (%d, %d)"%(imwidth, imheight, self.width, selfheight))
         return buf
 
     def setPartialLut(self):
@@ -312,35 +333,32 @@ class EPD:
         self.command(0x00).data(0x3f) #panel setting KW-3f KWR-2F BWROTP 0f BWOTP 1f
         self.command(0x30).data(0x3c) #PLL setting 100Hz
 
-        self.command(0x61)      #resolution setting
-        self.data([0x01, 0x90]) #400
-        self.data([0x01, 0x2c]) #300
+        #self.command(0x61).data([0x01, 0x90, 0x01, 0x2c]) #< Resolution setting 400x300
+        self.command(0x61).data( self._getResolutionBytes() )
 
         self.command(0x82).data(0x12) #vcom_DC setting
-        self.command(0X50).data(0x97) #VCOM AND DATA INTERVAL SETTING			
+        self.command(0x50).data(0x97) #VCOM AND DATA INTERVAL SETTING			
         
     def getBuffer4Gray(self, image):
-        # logger.debug("bufsiz = ",int(self.width/8) * self.height)
-        buf = [0xFF] * (int(self.width / 4) * self.height)
+        buf = [0xFF]*self.pages*2*self.height
         image_monocolor = image.convert('L')
         imwidth, imheight = image_monocolor.size
         pixels = image_monocolor.load()
         i=0
-        # logger.debug("imwidth = %d, imheight = %d",imwidth,imheight)
-        if(imwidth == self.width and imheight == self.height):
+        if (imwidth==self.width) and (imheight==self.height) and (self.landscape==False):
             logger.debug("Vertical")
             for y in range(imheight):
                 for x in range(imwidth):
                     # Set the bits for the column of pixels at the current position.
                     if(pixels[x, y] == 0xC0):
-                        pixels[x, y] = 0x80
+                        pixels[x, y] = 0x80  
                     elif (pixels[x, y] == 0x80):
                         pixels[x, y] = 0x40
                     i= i+1
                     if(i%4 == 0):
                         buf[int((x + (y * self.width))/4)] = ((pixels[x-3, y]&0xc0) | (pixels[x-2, y]&0xc0)>>2 | (pixels[x-1, y]&0xc0)>>4 | (pixels[x, y]&0xc0)>>6)
                         
-        elif(imwidth == self.height and imheight == self.width):
+        elif(imwidth==self.height) and (imheight==self.width) and (self.landscape==False):
             logger.debug("Horizontal")
             for x in range(imwidth):
                 for y in range(imheight):
@@ -353,7 +371,8 @@ class EPD:
                     i= i+1
                     if(i%4 == 0):
                         buf[int((newx + (newy * self.width))/4)] = ((pixels[x, y-3]&0xc0) | (pixels[x, y-2]&0xc0)>>2 | (pixels[x, y-1]&0xc0)>>4 | (pixels[x, y]&0xc0)>>6) 
-        
+        else:
+            print("Incorrect resolution. Got (%d,%d) vs (%d, %d)"%(imwidth, imheight, self.width, self.height))
         return buf
 
     def displayPartial(self, X_start, Y_start, X_end, Y_end, Image):
@@ -398,7 +417,7 @@ class EPD:
         self.command(0x12).waitWhileBusy() #DISPLAY REFRESH 		             
 
     def display4Gray(self, image):
-        bufferSize = self.width*self.pages
+        bufferSize = self.height*self.pages
         if len(image) < 2*bufferSize:
             image = image +[0]*(2*bufferSize -len(image))
 

@@ -72,6 +72,7 @@ if __name__ == "__main__":
                               busy = busy,
                               cs   = cs,
                               out  = ardu.spi.config_write_read_cs,
+                              landscape = True,
                              )
 
     epd42 = epd4in2_class.EPD(rst  = rst,
@@ -79,6 +80,7 @@ if __name__ == "__main__":
                               busy = busy,
                               cs   = cs,
                               out  = ardu.spi.config_write_read_cs,
+                              landscape = False,
                              )
 
 ##    test = testScripts.test(disp=disp1)

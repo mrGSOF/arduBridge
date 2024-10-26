@@ -1,6 +1,6 @@
 
 import time, logging
-from GSOF_ArduBridge.arduSPI import csLow, csHigh
+from GSOF_ArduBridge.ArduSPI import csLow, csHigh
 
 # Display resolution
 EPD_WIDTH       = 176
@@ -22,15 +22,16 @@ def split_list(alist, wanted_parts=1):
              for i in range(wanted_parts) ]
 
 class EPD():
-    def __init__(self, rst, dc, busy, out):
+    def __init__(self, rst, dc, busy, cs, out, landscape=False):
         self.rst  = rst
         self.dc   = dc
         self.busy = busy
         self.cs   = cs
         self.out  = out
-        self.width = EPD_WIDTH
-        self.height = EPD_HEIGHT
-        self.pages = int(self.height/8 +0.5)
+        self.width     = EPD_WIDTH
+        self.height    = EPD_HEIGHT
+        self.pages     = int(self.width/8 +0.5)
+        self.landscape = landscape
         self.GRAY1  = GRAY1 #white
         self.GRAY2  = GRAY2
         self.GRAY3  = GRAY3 #gray
@@ -190,7 +191,7 @@ class EPD():
         """Send command byte"""
         self.dc(0)
         cs = self.cs.pin
-        self.out( cs1=csLow(cs), cs2=csHigh(cs), N=1, vBytes=[cmd] )
+        self.out( cs1=csLow(cs), cs2=csHigh(cs), N=1, vByte=[cmd] )
         return self
 
     def data(self, vDat):
@@ -201,7 +202,7 @@ class EPD():
         cs = self.cs.pin
         lists = split_list(vDat, wanted_parts=int(len(vDat)/128 +1))
         for ls in lists:
-            self.out( cs1=csLow(cs), cs2=csHigh(cs), N=1, vBytes=ls )
+            self.out( cs1=csLow(cs), cs2=csHigh(cs), N=1, vByte=ls )
         return self
         
     def waitWhileBusy(self):
@@ -212,15 +213,27 @@ class EPD():
         return self
 
     def clear(self, bw=0xff, red=0xff):
-        self.command(0x10).data( [bw]*self.width*self.pages )
-        self.command(0x13).data( [red]*self.width*self.pages )
+        self.command(0x10).data( [bw]*self.height*self.pages )
+        self.command(0x13).data( [red]*self.height*self.pages )
         self.command(0x12).waitWhileBusy()
 
     def sleep(self):
         self.command(0x50).data(0xf7)
         self.command(0x02).command(0X07).data(0xA5)
-        #delay_ms(2000)
-    
+
+    def getResolution(self) -> list:
+        if self.landscape == False:
+            return (self.width, self.height)
+        else:
+            return (self.height, self.width)
+
+    def _getResolutionBytes(self) -> list:
+        resXLsb = 0xff&(self.width)
+        resXMsb = 0xff&(self.width>>8)
+        resYLsb = 0xff&(self.height)
+        resYMsb = 0xff&(self.height>>8)
+        return [resXMsb,resXLsb, resYMsb,resYLsb]
+
     def initBwr(self):
         self.reset()
         
@@ -253,7 +266,11 @@ class EPD():
         self.command(0x00).data(0xAF)      #< PANEL_SETTING: KW-BF   KWR-AF    BWROTP 0f
         self.command(0x30).data(0x3A)      #< PLL_CONTROL: 3A 100HZ, 29 150Hz, 39 200HZ, 31 171HZ
 
-        self.command(0x61).data([0x00,0xb0,0x01,0x08]) #< Resolution setting
+        resXLsb = 0xff&(self.width)
+        resXMsb = 0xff&(self.width>>8)
+        resYLsb = 0xff&(self.height)
+        resYMsb = 0xff&(self.height>>8)
+        self.command(0x61).data( self._getResolutionBytes() ) #resolution setting (176, 264)
 
         self.command(0x82).data(0x12)      #< VCM_DC_SETTING_REGISTER
         self.command(0X50).data(0x57)      #< VCOM AND DATA INTERVAL SETTING			
@@ -268,17 +285,42 @@ class EPD():
         self.command(0x23).data(self.bwr_lut_bb)      #< wb w
         self.command(0x24).data(self.bwr_lut_wb)      #< bb b 
 
+    def getBufferBwr(self, image):
+        # logger.debug("bufsiz = ",int(self.width/8) * self.height)
+        buf = [0xFF]*self.pages*self.height
+        image_monocolor = image.convert('1')
+        imwidth, imheight = image_monocolor.size
+        pixels = image_monocolor.load()
+        # logger.debug("imwidth = %d, imheight = %d",imwidth,imheight)
+        if (imwidth==self.width) and (imheight==self.height) and (self.landscape==False):
+            logger.debug("Vertical")
+            for y in range(imheight):
+                for x in range(imwidth):
+                    # Set the bits for the column of pixels at the current position.
+                    if pixels[x, y] == 0:
+                        buf[int((x + y * self.width) / 8)] &= ~(0x80 >> (x % 8))
+        elif(imwidth==self.height and imheight==self.width) and (self.landscape==True):
+            logger.debug("Horizontal")
+            for y in range(imheight):
+                for x in range(imwidth):
+                    newx = y
+                    newy = self.height - x - 1
+                    if pixels[x, y] == 0:
+                        buf[int((newx + newy*self.width) / 8)] &= ~(0x80 >> (y % 8))
+        else:
+            print("Incorrect resolution. Got (%d,%d) vs (%d, %d)"%(imwidth, imheight, self.width, self.height))
+        return buf
+
     def displayBwr(self, image):
-        bufferSize = self.width*self.pages
+        bufferSize = self.height*self.pages
         img = image[0:bufferSize +1]
         self.setBwrLut();
         self.command(0x10).data( [0xFF]*bufferSize )
-        self.command(0x13).data(img)
+        self.command(0x13).data( img )
         self.command(0x12).waitWhileBusy()
 
     def init4Gray(self):
         self.reset()
-        
         self.command(0x01).data( [0x03,0x00,0x2b,0x2b] ) #< POWER SETTING
         self.command(0x06).data( [0x07, 0x07, 0x17]) #< booster soft start A,B,C
         self.command(0xF8).data( [0x60,0xA5] )
@@ -292,8 +334,13 @@ class EPD():
         self.command(0x04).waitWhileBusy()
 
         self.command(0x00).data(0xbf) #panel setting: KW-BF   KWR-AF	BWROTP 0f
-        self.command(0x30).data(0x90) #PLL setting 100hz 
-        self.command(0x61).data( [0x00,0xb0,0x01,0x08] ) #resolution setting (176, 264)
+        self.command(0x30).data(0x90) #PLL setting 100hz
+        resXLsb = 0xff&(self.width)
+        resXMsb = 0xff&(self.width>>8)
+        resYLsb = 0xff&(self.height)
+        resYMsb = 0xff&(self.height>>8)
+        self.command(0x61).data( self._getResolutionBytes() ) #resolution setting (176, 264)
+        self.command(0x61).data( [resXMsb,resXLsb, resYMsb,resYLsb] ) #resolution setting (176, 264)
         self.command(0x82).data(0x12) #vcom_DC setting
         self.command(0X50).data(0x57)			#VCOM AND DATA INTERVAL SETTING			
         return self
@@ -305,30 +352,6 @@ class EPD():
         self.command(0x23).data(self.gray_lut_wb) #< wb w
         self.command(0x24).data(self.gray_lut_bb) #< bb b
         self.command(0x25).data(self.gray_lut_ww) #< vcom
-
-    def getBufferBwr(self, image):
-        # logger.debug("bufsiz = ",int(self.width/8) * self.height)
-        buf = [0xFF] * (int(self.width/8) * self.height)
-        image_monocolor = image.convert('1')
-        imwidth, imheight = image_monocolor.size
-        pixels = image_monocolor.load()
-        # logger.debug("imwidth = %d, imheight = %d",imwidth,imheight)
-        if(imwidth == self.width and imheight == self.height):
-            logger.debug("Vertical")
-            for y in range(imheight):
-                for x in range(imwidth):
-                    # Set the bits for the column of pixels at the current position.
-                    if pixels[x, y] == 0:
-                        buf[int((x + y * self.width) / 8)] &= ~(0x80 >> (x % 8))
-        elif(imwidth == self.height and imheight == self.width):
-            logger.debug("Horizontal")
-            for y in range(imheight):
-                for x in range(imwidth):
-                    newx = y
-                    newy = self.height - x - 1
-                    if pixels[x, y] == 0:
-                        buf[int((newx + newy*self.width) / 8)] &= ~(0x80 >> (y % 8))
-        return buf
     
     def getBuffer4Gray(self, image):
         # logger.debug("bufsiz = ",int(self.width/8) * self.height)
@@ -338,7 +361,7 @@ class EPD():
         pixels = image_monocolor.load()
         i=0
         # logger.debug("imwidth = %d, imheight = %d",imwidth,imheight)
-        if(imwidth == self.width and imheight == self.height):
+        if (imwidth==self.width) and (imheight==self.height) and (self.landscape==False):
             logger.debug("Vertical")
             for y in range(imheight):
                 for x in range(imwidth):
@@ -349,9 +372,8 @@ class EPD():
                         pixels[x, y] = 0x40
                     i= i+1
                     if(i%4 == 0):
-                        buf[int((x + (y * self.width))/4)] = ((pixels[x-3, y]&0xc0) | (pixels[x-2, y]&0xc0)>>2 | (pixels[x-1, y]&0xc0)>>4 | (pixels[x, y]&0xc0)>>6)
-                        
-        elif(imwidth == self.height and imheight == self.width):
+                        buf[int((x + (y * self.width))/4)] = ((pixels[x-3, y]&0xc0) | (pixels[x-2, y]&0xc0)>>2 | (pixels[x-1, y]&0xc0)>>4 | (pixels[x, y]&0xc0)>>6)      
+        elif (imwidth==self.height) and (imheight==self.width) and (self.landscape==True):
             logger.debug("Horizontal")
             for x in range(imwidth):
                 for y in range(imheight):
@@ -364,10 +386,12 @@ class EPD():
                     i= i+1
                     if(i%4 == 0):
                         buf[int((newx + (newy * self.width))/4)] = ((pixels[x, y-3]&0xc0) | (pixels[x, y-2]&0xc0)>>2 | (pixels[x, y-1]&0xc0)>>4 | (pixels[x, y]&0xc0)>>6) 
+        else:
+            print("Incorrect resolution. Got (%d,%d) vs (%d, %d)"%(imwidth, imheight, self.width, self.height))
         return buf
     
     def display4Gray(self, image):
-        layer1 = [0]*self.width*self.pages #< Bytes in frame
+        layer1 = [0]*self.height*self.pages #< Bytes in frame
         for i in range(0, len(layer1)):
             temp3=0
             for j in range(0, 2):
@@ -399,7 +423,7 @@ class EPD():
                     temp1 <<= 2
             layer1[i] = temp3
             
-        layer2 = [0]*self.width*self.pages #< Bytes in frame
+        layer2 = [0]*self.height*self.pages #< Bytes in frame
         for i in range(0, len(layer2)):
             temp3=0
             for j in range(0, 2):
