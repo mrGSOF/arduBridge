@@ -41,6 +41,7 @@ from GSOF_ArduBridge import ArduGPIO
 from GSOF_ArduBridge import ArduI2C
 from GSOF_ArduBridge import ArduSPI
 from GSOF_ArduBridge import ArduPulseAndSample as CAP
+from GSOF_ArduBridge import ArduWs2812
 
 def findArduCom(lookFor="Arduino"):
     ports = listPorts.comports()
@@ -73,6 +74,7 @@ class ArduBridge():
         self.i2c  = ArduI2C.ArduBridgeI2C( bridge=self.comm, logger=self.logger)
         self.spi  = ArduSPI.ArduBridgeSPI( bridge=self.comm, logger=self.logger)
         self.cap  = CAP.ArduBridgePnS( bridge=self.comm, logger=self.logger)
+        self.ws   = ArduWs2812.ArduBridgeWs2812( bridge=self.comm, logger=self.logger)     
     
     def _initLogger(self, logLevel=logging.INFO, fileHandler=True, consoleHandler=True):
         """Initialize the logger with a console handler and an optional file handler"""
