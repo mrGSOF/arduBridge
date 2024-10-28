@@ -15,13 +15,9 @@ from GSOF_ArduBridge import ArduShield_Uno
 
 def quickHelp():
     print("Quick help:")
-    print("ardu.gpio.pinMode(pin=1, mode=ardu.gpio.INPUT)")
-    print("ardu.gpio.pinMode(pin=2, mode=ardu.gpio.OUTPUT)")
-    print("ardu.gpio.digitalRead(1)")
-    print("ardu.gpio.digitalWrite(pin=2, val=1)")
-    print("ardu.gpio.pinPulse(pin=2, onTime=2)")
-    print("ardu.analogWrite(pin=3, val=128)")
-    print("ardu.analogRead(pin=1)")
+    print("ardu.ws.setConfig(pin=13, leds=10) #< 10 LEDs OFF")
+    print("ardu.ws.setConfig(pin=13, leds=10, red=10, green=10, blue=10)")
+    print("ardu.ws.ledWrite([(100,0,0),(0,100,0),(0,0,100)]*3) #< 9 LEDs to R,G,B")
     
 if __name__ == "__main__":
     #\/\/\/ CHANGE THESE PARAMETERS \/\/\/
