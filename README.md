@@ -11,8 +11,14 @@ In addition, the onboard 5V regulator eliminates the need to supply a precise vo
 ![Alt text](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/basicHardwareSetup.png "Basic Hardwrae Setup")
 
 # Installation and hardware setup
-The ArduBridge Python model is a pip package installation and the firmware that runs on the Arduino is installed by programming (also know as uploading).
-## Firmware upload
+The ArduBridge Python model is a pip package installation and the firmware that runs on the Arduino is installed by programming the Arduino (also know as uploading).<br />  
+## To install from PyPI use:<br />  
+`pip install GSOF_ArduBridge`
+
+## To install from cloned repository use:<br />  
+`pip install .`
+
+## Firmware upload to Arduino
 To program the Arduino use the xloader application (https://github.com/xinabox/xLoader) and follow these steps:
 1.	Open the xloader application.
 2.	Select the COM port that the Arduino is connected to.
@@ -25,7 +31,7 @@ Before installing the ArduShield module, make sure Python 3.7 or above is instal
  together with the latest pyserial module (use the command "pip install pyserial" to install it).<br />
 or in short:
 
-- Clone
+- Clone with `git clone https://github.com/mrGSOF/arduBridge.git`
 - Install requirements `pip install -r requirements.txt`
  
 Installation of the ArduBridge can be done in two ways:
