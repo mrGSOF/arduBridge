@@ -32,7 +32,7 @@ def readme():
 
 setup(
       name='GSOF_ArduBridge',
-      version='0.12',
+      version='0.13',
       description='Protocol stack to bridge between an Arduino and Python',
       long_description=readme(),
       long_description_content_type='text/markdown',
