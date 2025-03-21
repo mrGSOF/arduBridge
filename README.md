@@ -19,11 +19,12 @@ The ArduBridge Python model is a pip package installation and the firmware that 
 `pip install .`
 
 ## Firmware upload to Arduino
-To program the Arduino use the xloader application (https://github.com/xinabox/xLoader) and follow these steps:
-1.	Open the xloader application.
-2.	Select the COM port that the Arduino is connected to.
-3.	Select the Hex file "Bridge_Ctrl_V21.hex" (or the most updated FW you have).
-4.	Press the "Upload" button and wait for the programming operation to finish after a few seconds.
+1. Download the latest version of the Firmware and XLoader from the [Releases Tab](https://github.com/mrGSOF/arduBridge/releases)<br />
+2. Extract the files from XLoader.zip<br />
+3. Open the XLoader application.
+4. Select the COM port that the Arduino is connected to.
+5. Select the Hex file "Bridge_Ctrl_V21.hex" (or the most updated FW you have).
+6. Press the "Upload" button and wait for the programming operation to finish after a few seconds.
 ![Alt text](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/arduBridge_FW_upload.png "Firmware update")
 
 ## Python modules installation
