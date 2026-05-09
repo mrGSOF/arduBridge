@@ -145,18 +145,18 @@ class ArduBridgeComm():
             while i<N:
                 c = self.getByte()
                 
-                if len(c) == 0:
+                if (len(c) == 0):
                     self.semaRX.release()
                     return (self.ERR_BYTE, vDat) #< Error missing bytes
                 c = ord(c)
                 
-                if c == self.ESC:
+                if (c == self.ESC):
                     c = self.getByte()
-                    if len(c) == 0:
+                    if (len(c) == 0):
                         self.semaRX.release()
                         return (self.ERR_BYTE, vDat)
 
-                    elif c == self.RST and reset:
+                    elif (c == self.RST) and reset:
                         #print('Error - Received RST from Arduino-Bridge\n')
                         self.semaRX.release()
                         return (self.ERR_RST, vDat) #< In case of missing bytes, return (0, vDat)
@@ -164,7 +164,7 @@ class ArduBridgeComm():
                     c = ord(c)
                     c = ((c&0xf)<<4) +((c>>4)&0xf) #Swapping the value after ESC
                     
-                elif c == self.RST and reset:
+                elif (c == self.RST) and reset:
                     #print('Error - Received RST from Arduino-Bridge\n')
                     self.semaRX.release()
                     return (self.ERR_RST, vDat) #< In case of missing bytes, return (0, vDat)

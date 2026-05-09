@@ -127,7 +127,7 @@ class ArduBridgeI2C():
         reply = self.comm.receive(1)        #1st byte is how many bytes where read
         if reply[0] != 0:
             n = reply[1][0]
-            reply = self.comm.receive(n, reset=False) #Read n bytes
+            reply = self.comm.receive(n, reset=False) #Read n, ignoring reset command values (0x1b)
             if reply[0] != 0:
                 val = reply[1]
                 if self.logger != None:
