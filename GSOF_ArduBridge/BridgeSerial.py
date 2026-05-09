@@ -135,7 +135,7 @@ class ArduBridgeComm():
             print('Error - %s RX timeout'%(self.ser.port))
         return c
         
-    def receive(self, N) -> list:
+    def receive(self, N, reset=True) -> list:
         """Returns a list with maximum N received bytes with timeout of 0.1 sec"""
         N = int(N)
         self.semaRX.acquire()
@@ -156,7 +156,7 @@ class ArduBridgeComm():
                         self.semaRX.release()
                         return (self.ERR_BYTE, vDat)
 
-                    elif c == self.RST:
+                    elif c == self.RST and reset:
                         #print('Error - Received RST from Arduino-Bridge\n')
                         self.semaRX.release()
                         return (self.ERR_RST, vDat) #< In case of missing bytes, return (0, vDat)
@@ -164,7 +164,7 @@ class ArduBridgeComm():
                     c = ord(c)
                     c = ((c&0xf)<<4) +((c>>4)&0xf) #Swapping the value after ESC
                     
-                elif c == self.RST:
+                elif c == self.RST and reset:
                     #print('Error - Received RST from Arduino-Bridge\n')
                     self.semaRX.release()
                     return (self.ERR_RST, vDat) #< In case of missing bytes, return (0, vDat)
