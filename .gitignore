@@ -2,3 +2,5 @@ __pycache__
 /dist
 /build
 /GSOF_ArduBridge.egg-info
+.history/
+upload.bat

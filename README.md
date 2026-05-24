@@ -40,6 +40,66 @@ Installation of the ArduBridge can be done in two ways:
 2.	By running the setup.py script in a command prompt ("CMD") window.
 
 # Documentation and example code
+
+## Basic example code for using the arduino without a shield
+```python
+from GSOF_ArduBridge import ArduBridge
+
+def quickHelp():
+    print("Quick help:")
+    print("ardu.gpio.pinMode(pin=1, mode=ardu.gpio.INPUT)")
+    print("ardu.gpio.pinMode(pin=2, mode=ardu.gpio.OUTPUT)")
+    print("ardu.gpio.digitalRead(1)")
+    print("ardu.gpio.digitalWrite(pin=2, val=1)")
+    print("ardu.gpio.pinPulse(pin=2, onTime=2)")
+    print("ardu.analogWrite(pin=3, val=128)")
+    print("ardu.analogRead(pin=1)")
+
+port = "auto"          #< Change to the correct COM to access the Arduino
+#port = "/dev/ttyUSB0" #< Under Linux
+baudRate = 115200*2    #< Leave as is (230400 bits per second)
+
+print('Using port %s at %d'%(port, baudRate))
+ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate)
+
+print('Discovering ArduBridge on port %s'%(port))
+if ardu.OpenClosePort(1):
+    print('ArduBridge is ON-LINE.')
+else:
+    print('ArduBridge is not responding.')
+quickHelp()
+```
+
+## Basic example code for using the arduino USING a shield
+```python
+from GSOF_ArduBridge import ArduBridge
+from GSOF_ArduBridge import ArduShield_Uno
+
+def quickHelp():
+    print("Quick help:")
+    print("ardu.gpio.pinMode(pin=1, mode=ardu.gpio.INPUT)")
+    print("ardu.gpio.pinMode(pin=2, mode=ardu.gpio.OUTPUT)")
+    print("ardu.gpio.digitalRead(1)")
+    print("ardu.gpio.digitalWrite(pin=2, val=1)")
+    print("ardu.gpio.pinPulse(pin=2, onTime=2)")
+    print("ardu.analogWrite(pin=3, val=128)")
+    print("ardu.analogRead(pin=1)")
+
+port = "auto"          #< Change to the correct COM to access the Arduino
+#port = "/dev/ttyUSB0" #< Under Linux
+baudRate = 115200*2    #< Leave as is (230400 bits per second)
+
+print('Using port %s at %d'%(port, baudRate))
+ardu = ArduBridge.ArduBridge( COM=port, baud=baudRate)
+ards = ArduShield_Uno.ArduBridge_Shield( ardu, an_ref=3.3 )
+
+print('Discovering ArduBridge on port %s'%(port))
+if ardu.OpenClosePort(1):
+    print('ArduBridge is ON-LINE.')
+else:
+    print('ArduBridge is not responding.')
+quickHelp()
+
 A detailed [user manual](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/GSOF_ArduBridgeShield_UM.pdf) can be found under the Documentation folder.
 [Code example](https://github.com/mrGSOF/arduBridge/tree/main/Examples) are present under the Example folder.
 ![Alt text](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/codeTemplate.png "Basic Code Template")
