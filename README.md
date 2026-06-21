@@ -99,6 +99,7 @@ if ardu.OpenClosePort(1):
 else:
     print('ArduBridge is not responding.')
 quickHelp()
+```
 
 A detailed [user manual](https://github.com/mrGSOF/arduBridge/blob/main/Documentation/GSOF_ArduBridgeShield_UM.pdf) can be found under the Documentation folder.
 [Code example](https://github.com/mrGSOF/arduBridge/tree/main/Examples) are present under the Example folder.
