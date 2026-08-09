@@ -65,10 +65,10 @@ class ArduBridgeGPIO():
             self.logger.debug('DIR%d: %s - %s', pin, self.DIR[mode], self.RES[reply[0]])
         return reply[0]
 
-    def digitalWrite(self, pin, val):
-        return self.setPin(pin, val)
+    def digitalWrite(self, pin, val, log=True):
+        return self.setPin(pin, val, log=log)
 
-    def setPin(self, pin, val):
+    def setPin(self, pin, val, log=True):
         """Set the Arduino's pin state (either 0 or 1)"""
         val = int(val)
         if (val != 0):
@@ -77,14 +77,14 @@ class ArduBridgeGPIO():
             vDat = (ord('O'), pin, val)
             self.comm.send(vDat)
         reply = self.comm.receive(1)
-        if self.logger != None:
+        if self.logger != None and log == True:
             self.logger.debug(f"DOUT{pin}: {val} - {self.RES[reply[0]]}")
         return reply[0]
 
-    def digitalRead(self, pin):
-        return self.getPin(pin)
+    def digitalRead(self, pin, log=True):
+        return self.getPin(pin, log=log)
 
-    def getPin(self, pin):
+    def getPin(self, pin, log=True):
         """Returns the Arduino's pin state (either 0 or 1)"""
         if (pin < 0x1b):
             vDat = (ord('I'), pin)
@@ -92,7 +92,7 @@ class ArduBridgeGPIO():
         reply = self.comm.receive(1)
         if reply[0] > 0:
             val = reply[1][0]
-            if self.logger != None:
+            if self.logger != None and log == True:
                 self.logger.debug(f"DIN{pin}: {val}")
             return val
         if self.logger != None:
@@ -138,9 +138,9 @@ class ArduBridgeGPIO():
             time.sleep(sleepTime -0.01)
         return sleepTime
  
-    def pinPulse(self, pin, onTime) -> int:
+    def pinPulse(self, pin, onTime, log=True) -> int:
         """Pulse the the specific pin# on the arduino GPO"""
-        self.digitalWrite(pin, 1)
+        self.digitalWrite(pin, 1, log=log)
         time.sleep(onTime)
-        self.digitalWrite(pin, 0)
+        self.digitalWrite(pin, 0, log=log)
         return 1

@@ -53,7 +53,7 @@ class ArduBridgeComm():
     ERR_LINK = -1
     ERR_RST  = -2
 
-    def __init__(self, COM, baud=115200*2, PortStatusReport=False, RxTimeOut = 0.015, writeTimeout=0.1, interByteTimeout=None, logger=None):
+    def __init__(self, COM, baud=115200*2, PortStatusReport=False, RxTimeOut = 0.015, writeTimeout=0.2, interByteTimeout=None, logger=None):
         self.pyVer = sys.version_info.major +sys.version_info.minor/10.0
         print('GSOF_ArduSerial v1.1 for Python-%s'%(self.pyVer))
         self.RxTry = 25
@@ -132,7 +132,8 @@ class ArduBridgeComm():
 
             trail -= 1
         if len(c) == 0:
-            print('Error - %s RX timeout'%(self.ser.port))
+            if self.logger != None:
+                self.logger.warning('Error - %s RX timeout'%(self.ser.port))
         return c
         
     def receive(self, N, reset=True) -> list:
@@ -173,8 +174,8 @@ class ArduBridgeComm():
                 i += 1
             self.semaRX.release()
             return (self.GOOD, vDat) #< In case of all GOOD, return (1, vDat)
-
-        print('Error - %s is closed'%(self.ser.port))
+        if self.logger != None:
+            self.logger.critical('Error - %s is closed'%(self.ser.port))
         self.semaRX.release()
         return (self.ERR_LINK,[]) #< In case of link error return (-1, ())
 
@@ -190,31 +191,37 @@ class ArduBridgeComm():
             try:
                 self.ser.open()
                 self.LINK = True
-                print('ArduBridge COM is open')
+                if self.logger != None:
+                    self.logger.info('ArduBridge COM is open')
                 
             except serial.SerialTimeoutException:
                 self.LINK = False
-                print('Error - Cannot oprn %s\n'%(self.ser.port))
+                if self.logger != None:
+                    self.logger.warning('Error - Cannot open %s\n'%(self.ser.port))
                 pass
 
             except serial.SerialException:
-                print('Cannot execute command\n')
+                if self.logger != None:
+                    self.logger.error('Cannot execute command\n')
         else:
             self.ser.close()
             self.LINK = False
-            print('ArduBridge COM is closed')
+            if self.logger != None:
+                self.logger.critical('ArduBridge COM is closed')
 
     def try_to_open_new_port(self) -> None:
         """Retry to open the serial link every 0.5 sec"""
         self.ser.close()
         while self.ser.isOpen() == False:
-            print('COM is dead!! - retry a connection')
+            if self.logger != None:
+                self.logger.critical('COM is dead!! - retry a connection')
             try:
                 self.ser.open()
             except serial.serialutil.SerialException:
                 time.sleep(0.5)
                 pass
-        print('COM connection reastablished!!')
+        if self.logger != None:
+            self.logger.info('COM connection reastablished!!')
 
     def uart_flush(self) -> None:
         """Flash the serial FIFO"""
@@ -234,7 +241,8 @@ class ArduBridgeComm():
                 self.ser.write(dat)
                 
             except serial.SerialTimeoutException:
-                print('Error - %s TX timeout'%(self.ser.port))
+                if self.logger != None:
+                    self.logger.warning('Error - %s TX timeout'%(self.ser.port))
                 pass
             
             except serial.serialutil.SerialException:
