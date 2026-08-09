@@ -53,7 +53,7 @@ class ArduBridgeComm():
     ERR_LINK = -1
     ERR_RST  = -2
 
-    def __init__(self, COM, baud=115200*2, PortStatusReport=False, RxTimeOut = 0.015, writeTimeout=0.2, interByteTimeout=None, logger=None):
+    def __init__(self, COM, baud=115200*2, PortStatusReport=False, RxTimeOut = 0.015, writeTimeout=0.1, interByteTimeout=None, logger=None):
         self.pyVer = sys.version_info.major +sys.version_info.minor/10.0
         print('GSOF_ArduSerial v1.1 for Python-%s'%(self.pyVer))
         self.RxTry = 25

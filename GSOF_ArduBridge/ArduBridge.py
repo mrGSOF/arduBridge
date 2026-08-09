@@ -51,7 +51,7 @@ def findArduCom(lookFor="Arduino"):
     return None
 
 class ArduBridge():
-    def __init__(self, COM="auto", baud=115200*2, logger=None, logLevel=logging.INFO, fileHandler=False, consoleHandler=True, RxTimeOut=0.015, TxTimeOut=0.2):
+    def __init__(self, COM="auto", baud=115200*2, logger=None, logLevel=logging.INFO, fileHandler=False, consoleHandler=True, RxTimeOut=0.015, TxTimeOut=0.1):
 
         version = 'v1.1 running on Python %s'%(sys.version[0:5])
         self.logger = logger
