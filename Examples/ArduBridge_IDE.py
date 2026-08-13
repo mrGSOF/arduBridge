@@ -20,8 +20,8 @@ def quickHelp():
     print("ardu.gpio.digitalRead(1)")
     print("ardu.gpio.digitalWrite(pin=2, val=1)")
     print("ardu.gpio.pinPulse(pin=2, onTime=2)")
-    print("ardu.analogWrite(pin=3, val=128)")
-    print("ardu.analogRead(pin=1)")
+    print("ardu.an.analogWrite(pin=3, val=128)")
+    print("ardu.an.analogRead(pin=1)")
     
 if __name__ == "__main__":
     #\/\/\/ CHANGE THESE PARAMETERS \/\/\/
